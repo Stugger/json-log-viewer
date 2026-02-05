@@ -1,0 +1,30 @@
+package com.stugger.logviewer.model;
+
+/**
+ *
+ * @author Jake
+ * @since January 27, 2026
+ */
+public enum DayRange {
+
+    ZERO_DAYS("N/A", 0),
+    ONE_DAY("1 DAY", 1),
+    TWO_DAYS("2 DAYS", 2),
+    FIVE_DAYS("5 DAYS", 5),
+    SEVEN_DAYS("7 DAYS", 7),
+    TEN_DAYS("10 DAYS", 10),
+    ;
+
+    private final String label;
+    public final int days;
+
+    DayRange(String label, int days) {
+        this.label = label;
+        this.days = days;
+    }
+
+    @Override
+    public String toString() {
+        return label;
+    }
+}

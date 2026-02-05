@@ -1,0 +1,318 @@
+.root {
+    -fx-base: #1f2328;
+    -fx-background: #1f2328;
+    -fx-control-inner-background: #22262c;
+    -fx-text-fill: #d7dde5;
+    -fx-text-base-color: #d7dde5; /* use base color instead of forcing .text */
+}
+
+/* Keep labels consistent */
+.label {
+    -fx-text-fill: -fx-text-base-color;
+}
+
+.label.note {
+    -fx-text-fill: #7d8288;
+}
+
+.text-field {
+    -fx-prompt-text-fill: #7d8288;
+}
+
+.text-field.valid {
+    -fx-focus-color: #3fb950;      /* green-ish */
+    -fx-faint-focus-color: rgba(63,185,80,0.25);
+}
+
+.text-field.invalid {
+    -fx-focus-color: #f85149;      /* red-ish */
+    -fx-faint-focus-color: rgba(248,81,73,0.25);
+}
+
+.tool-bar {
+    -fx-background-color: #181c20;
+}
+
+.statusbar {
+    -fx-padding: 8 10 8 10;
+    -fx-background-color: #181c20;
+}
+
+.tree-view, .table-view, .tab-pane, .text-area, .scroll-pane {
+    -fx-background-color: #1f2328;
+}
+
+/* Make TreeView's inner area match your dark theme */
+.tree-view {
+    -fx-control-inner-background: #1f2328;
+}
+
+/* --- TreeView row styling (fixes checkbox-toggle "white background" issue) --- */
+
+/* Base row */
+.tree-cell {
+    -fx-background-color: transparent;
+}
+
+/* Default text inside rows */
+.tree-cell .text {
+    -fx-fill: #d7dde5;
+}
+
+/* Make sure empty rows don't show hover highlight */
+.tree-cell:empty {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+.tree-cell:empty:hover {
+    -fx-background-color: transparent;
+}
+
+/* --- Disclosure arrow (expand/collapse) visible + consistent --- */
+.tree-cell .tree-disclosure-node {
+    -fx-padding: 5 5 0 6;
+    -fx-background-color: transparent;
+}
+
+/* arrow shape */
+.tree-cell .tree-disclosure-node .arrow {
+    -fx-background-color: #7d8288;     /* visible in default state */
+}
+.tree-cell:hover .tree-disclosure-node .arrow {
+    -fx-background-color: #d7dde5;
+}
+
+/* Lock the checkbox box size so selected/indeterminate can't change row layout */
+.tree-cell .check-box .box {
+    -fx-background-color: transparent;
+    -fx-border-color: #7d8288;
+    -fx-border-width: 1;
+
+    /* sharper corners */
+    -fx-border-radius: 1;
+    -fx-background-radius: 1;
+
+    /* fixed dimensions (prevents indeterminate from pushing layout) */
+    -fx-min-width: 16px;
+    -fx-min-height: 16px;
+    -fx-pref-width: 16px;
+    -fx-pref-height: 16px;
+    -fx-max-width: 16px;
+    -fx-max-height: 16px;
+}
+
+/* Scope / category: hide checkbox entirely when not selected */
+.tree-cell.kind-scope .check-box,
+.tree-cell.kind-category .check-box {
+    -fx-opacity: 0;
+    -fx-padding: 0 -16 0 0; /* pull text left by eating space */
+}
+
+.tree-cell.kind-scope .text,
+.tree-cell.kind-category .text {
+    -fx-translate-x: -4;
+}
+
+/* When selected / indeterminate, restore normal spacing */
+.tree-cell.kind-scope .check-box:selected,
+.tree-cell.kind-scope .check-box:indeterminate,
+.tree-cell.kind-category .check-box:selected,
+.tree-cell.kind-category .check-box:indeterminate {
+    -fx-padding: 0 4 0 0;
+    -fx-opacity: 1;
+}
+
+/* Lock mark size too (prevents the indeterminate dash from requesting extra space) */
+.tree-cell .check-box .mark {
+    -fx-background-color: transparent;
+    -fx-min-width: 12px;
+    -fx-min-height: 12px;
+    -fx-pref-width: 12px;
+    -fx-pref-height: 12px;
+    -fx-max-width: 12px;
+    -fx-max-height: 12px;
+}
+
+/* Hover: slightly brighter border even when unchecked */
+.tree-cell .check-box:hover .box {
+    -fx-border-color: #a0a6ad;
+}
+
+/* --- Checked (selected) => green outline + green check --- */
+.tree-cell .check-box:selected .box {
+    -fx-border-color: #3fb950;
+    -fx-background-color: transparent;
+}
+
+.tree-cell .check-box:selected:hover .box {
+    -fx-border-color: #4fdc73;
+}
+.tree-cell .check-box:selected:hover .mark {
+    -fx-background-color: #4fdc73;
+}
+
+.tree-cell .check-box:selected .mark {
+    -fx-background-color: #3fb950;
+}
+
+/* --- Indeterminate => yellow outline + yellow dash --- */
+.tree-cell .check-box:indeterminate .box {
+    -fx-border-color: #d29922;
+    -fx-background-color: transparent;
+}
+
+.tree-cell .check-box:indeterminate .mark {
+    -fx-background-color: #d29922;
+}
+
+.tree-cell .check-box:indeterminate:hover .box {
+    -fx-border-color: #e3b341;
+}
+.tree-cell .check-box:indeterminate:hover .mark {
+    -fx-background-color: #e3b341;
+}
+
+/* Keep checkbox colors even when row selected */
+.tree-cell:selected .check-box:selected .box { -fx-border-color: #3fb950; }
+.tree-cell:selected .check-box:selected .mark { -fx-background-color: #3fb950; }
+.tree-cell:selected .check-box:indeterminate .box { -fx-border-color: #d29922; }
+.tree-cell:selected .check-box:indeterminate .mark { -fx-background-color: #d29922; }
+
+/* Selected row (unfocused + focused) */
+.tree-cell:selected,
+.tree-cell:filled:selected,
+.tree-view:focused .tree-cell:selected,
+.tree-view:focused .tree-cell:filled:selected {
+    -fx-background-color: #2c323a;
+}
+
+/* Selected row text */
+.tree-cell:selected .text,
+.tree-cell:filled:selected .text,
+.tree-view:focused .tree-cell:selected .text,
+.tree-view:focused .tree-cell:filled:selected .text {
+    -fx-fill: #ffffff;
+}
+
+/* Optional: hover feedback */
+.tree-cell:hover {
+    -fx-background-color: rgba(255,255,255,0.04);
+}
+
+.tree-cell:empty:hover {
+    -fx-background-color: transparent;
+}
+
+/* Disabled tree items: dim + strikethrough */
+.tree-cell:disabled .text {
+    -fx-fill: #8a8f96;         /* different gray than player-toggle */
+    -fx-strikethrough: true;
+}
+
+/* Also dim disclosure arrow/checkbox a bit when disabled */
+.tree-cell:disabled {
+    -fx-opacity: 0.75;
+}
+
+/* only draw guide for non-scope rows */
+.tree-cell.kind-category:filled,
+.tree-cell.kind-leaf:filled {
+    -fx-border-color: transparent transparent transparent rgba(255,255,255,0.08);
+    -fx-border-width: 0 0 0 1;
+    -fx-border-insets: 0 0 0 11;
+}
+
+/* --- TableView --- */
+
+.table-view .column-header-background {
+    -fx-background-color: #181c20;
+}
+
+.table-cell {
+    -fx-text-fill: #d7dde5;
+}
+
+.table-row-cell {
+    -fx-background-color: #1f2328;
+}
+
+.table-row-cell:filled:hover {
+    -fx-background-color: derive(-fx-control-inner-background, 6%);
+}
+
+.table-row-cell:filled:selected, .table-cell:filled:selected {
+    -fx-background-color: #2c323a;
+    -fx-text-fill: white;
+}
+
+.table-row-cell:filled:selected:focused, .table-cell:filled:selected:focused {
+    -fx-background-color: #2c323a;
+    -fx-text-fill: white;
+}
+
+.table-row-cell:filled:selected .table-cell {
+    -fx-text-fill: white;
+}
+
+/* --- TextArea --- */
+.text-area .content {
+    -fx-background-color: #22262c;
+}
+
+/* --- Buttons --- */
+.button {
+    -fx-text-fill: -fx-text-base-color;
+}
+
+.button:default {
+    -fx-text-fill: #0b0f14; /* dark text for bright blue default button */
+}
+
+.button.clear-button {
+    -fx-background-color:
+        #5c2a2a,
+        #8e2f2f;
+    -fx-background-insets: 0, 1;
+    -fx-text-fill: white;
+    -fx-focus-color: #4a90e2;
+    -fx-faint-focus-color: rgba(74,144,226,0.35);
+}
+
+.button.clear-button:hover {
+    -fx-background-color:
+        #7a3434,
+        #b83c3c;
+}
+
+.button.clear-button:pressed {
+    -fx-background-color:
+        #532626,
+        #822b2b;
+    -fx-background-insets: 0, 2;
+}
+
+/* CheckBox + RadioButton text should follow base unless overridden */
+.check-box, .radio-button {
+    -fx-text-fill: -fx-text-base-color;
+}
+
+/* --- Player selection toggles --- */
+.player-toggle {
+    -fx-text-fill: #9a9a9a;
+    -fx-opacity: 1.0;
+}
+
+.player-toggle:selected {
+    -fx-text-fill: white;
+}
+
+.player-toggle:disabled {
+    -fx-opacity: 0.6;
+}
+
+/* --- Leader line --- */
+.leader-line .line {
+    -fx-border-color: rgba(255,255,255,0.20);
+    -fx-border-width: 0 0 1 0;
+    -fx-border-style: segments(1, 6); /* dotted-ish */
+}

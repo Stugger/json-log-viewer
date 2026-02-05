@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox prefHeight="600.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.stugger.logviewer.ui.MainController">
+   <children>
+      <MenuBar>
+        <menus>
+          <Menu mnemonicParsing="false" text="File">
+            <items>
+                  <MenuItem fx:id="new_tab_menu_item" mnemonicParsing="false" onAction="#on_click_new_tab" text="New Tab" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem fx:id="choose_root_menu_item" mnemonicParsing="false" onAction="#on_click_choose_logs_root" text="Choose Logs Root" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem mnemonicParsing="false" onAction="#on_click_settings" text="Settings" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+              <MenuItem mnemonicParsing="false" text="Close" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Window">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Theme" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Help">
+            <items>
+              <MenuItem mnemonicParsing="false" text="About" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+      <TabPane fx:id="session_tabs" VBox.vgrow="ALWAYS" />
+      <BorderPane prefHeight="32.0" VBox.vgrow="NEVER">
+         <right>
+            <Label styleClass="note" text="Version 1.0 - Created by Stugger" BorderPane.alignment="CENTER">
+               <BorderPane.margin>
+                  <Insets bottom="1.0" right="11.0" />
+               </BorderPane.margin>
+            </Label>
+         </right>
+         <left>
+               <Label fx:id="statusLabel" text="..." BorderPane.alignment="CENTER">
+               <BorderPane.margin>
+                  <Insets bottom="1.0" left="9.0" />
+               </BorderPane.margin>
+            </Label>
+         </left>
+      </BorderPane>
+   </children>
+</VBox>
