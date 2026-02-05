@@ -80,34 +80,20 @@ public class JsonlLogSource implements LogSource {
         }
         try {
             JsonObject obj = JsonParser.parseString(rawLine).getAsJsonObject();
-            if (!obj.has("timeMs")) {
+            if (!obj.has("ts")) {
                 return null;
             }
-            long timeMs = obj.get("timeMs").getAsLong();
+            long timeMs = obj.get("ts").getAsLong();
             if (timeMs <= 0) {
                 return null;
             }
-            //check if any record has a field with a value of an audited players username
-            if (query.players() instanceof PlayerSelection.Some && file.toString().contains(Scope.GLOBAL.folderName)) {
-                boolean matched = false;
-                usernames: for (Username username : ((PlayerSelection.Some)query.players()).usernames()) {
-                    if (rawLine.contains("\"" + username.withoutSpaces() + "\"")) {
-                        for (String key : obj.keySet()) {
-                            JsonElement el = obj.get(key);
-                            if (el != null && el.isJsonPrimitive() && el.getAsJsonPrimitive().isString()) {
-                                if (el.getAsString().equals(username.withoutSpaces())) {
-                                    matched = true;
-                                    break usernames;
-                                }
-                            }
-                        }
-                    }
-                }
-                if (!matched) {
+            PathMeta meta = PathMeta.from(file);
+            //GLOBAL + Some(players) only keep records associated with any audited player
+            if (meta.scope() == Scope.GLOBAL && query.players() instanceof PlayerSelection.Some(Set<Username> usernames)) {
+                if (!containsPlayer(obj, usernames)) {
                     return null;
                 }
             }
-            PathMeta meta = PathMeta.from(file);
             String summary = fallbackSummary(obj, meta, rawLine);
             return new LogRecord(
                     timeMs,
@@ -123,16 +109,54 @@ public class JsonlLogSource implements LogSource {
         }
     }
 
+    private static boolean containsPlayer(JsonObject obj, Set<Username> usernames) {
+        //1. check primary "user"
+        if (obj.has("user")) {
+            JsonElement userEl = obj.get("user");
+            if (userEl != null && userEl.isJsonPrimitive() && userEl.getAsJsonPrimitive().isString()) {
+                String user = userEl.getAsString();
+                if (user != null && !user.isEmpty()) {
+                    for (Username audited : usernames) {
+                        if (user.equals(audited.withoutSpaces())) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        //2. check participants "users" array
+        if (obj.has("users")) {
+            JsonElement usersEl = obj.get("users");
+            if (usersEl != null && usersEl.isJsonArray()) {
+                for (JsonElement e : usersEl.getAsJsonArray()) {
+                    if (e == null || !e.isJsonPrimitive() || !e.getAsJsonPrimitive().isString()) {
+                        continue;
+                    }
+                    String participant = e.getAsString();
+                    if (participant == null || participant.isEmpty()) {
+                        continue;
+                    }
+                    for (Username audited : usernames) {
+                        if (participant.equals(audited.withoutSpaces())) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     //TODO will be replaced with schema architecture - currently reflects my own use case
     private static String fallbackSummary(JsonObject obj, PathMeta meta, String rawLine) {
         // Staff action style
-        if (obj.has("staffMember") && obj.has("info")) {
-            return obj.get("staffMember").getAsString() + ": " + obj.get("info").getAsString();
+        if (meta.typeId().contains("staff_actions")) {
+            return obj.get("user").getAsString() + ": " + obj.get("info").getAsString();
         }
 
         // Login
         if (meta.typeId().contains("login")) {
-            return obj.get("username").getAsString() + ": ip=" + obj.get("ip").getAsString() + ", mac=" + obj.get("mac").getAsString() + ", pcuid=" + obj.get("pcuid").getAsString();
+            return obj.get("user").getAsString() + ": ip=" + obj.get("ip").getAsString() + ", mac=" + obj.get("mac").getAsString() + ", pcuid=" + obj.get("pcuid").getAsString();
         }
 
         // Command style
@@ -141,7 +165,7 @@ public class JsonlLogSource implements LogSource {
         }
 
         // Chat style
-        if (obj.has("sentBy") && obj.has("message")) {
+        if (meta.typeId().contains("chat/") && obj.has("message")) {
             StringBuilder sb = new StringBuilder();
             if (obj.has("chunkX")) { //public
                 sb.append("[").append(obj.get("chunkX").getAsInt()).append(", ").append(obj.get("chunkY").getAsInt()).append(", ").append(obj.get("plane").getAsInt()).append("] ");
@@ -151,10 +175,10 @@ public class JsonlLogSource implements LogSource {
                 sb.append("[").append(obj.get("activityName").getAsString()).append("] ");
             } else if (obj.has("groupName")) { //irongroup
                 sb.append("[").append(obj.get("groupName").getAsString()).append("] ");
-            } else if (obj.has("sentTo")) { //direct
-                sb.append("[to ").append(obj.get("sentTo").getAsString()).append("] ");
+            } else if (!obj.get("users").getAsJsonArray().isEmpty()) { //direct
+                sb.append("[to ").append(obj.get("users").getAsJsonArray().get(0).getAsString()).append("] ");
             }
-            sb.append(obj.get("sentBy").getAsString()).append(": ").append(obj.get("message").getAsString());
+            sb.append(obj.get("user").getAsString()).append(": ").append(obj.get("message").getAsString());
             return sb.toString();
         }
 
@@ -164,28 +188,40 @@ public class JsonlLogSource implements LogSource {
             if (obj.has("tile")) {
                 sb.append(" at tile(").append(obj.get("tile")).append(")");
             }
-            if (obj.has("ownerUsername")) {
-                sb.append(", owner=").append(obj.get("ownerUsername").getAsString());
+            if (!obj.get("users").getAsJsonArray().isEmpty()) {
+                sb.append(", owner=").append(obj.get("users").getAsJsonArray().get(0).getAsString());
             }
             return sb.toString();
         }
 
-        // Trade style (player)
-        if (obj.has("withPlayer") && obj.has("receivedValue")) {
-            return "traded with " + obj.get("withPlayer").getAsString() + ": gave " + obj.get("gaveValue").getAsLong() + "gp worth of items in exchange for " + obj.get("receivedValue").getAsLong() + "gp worth of items";
+        // Trade style
+        if (meta.typeId().contains("trades")) {
+            if (meta.scope() == Scope.PLAYER) {
+                return "traded with " + obj.get("users").getAsJsonArray().get(0).getAsString() + ": gave " + obj.get("gaveValue").getAsLong() + "gp worth of items in exchange for " + obj.get("receivedValue").getAsLong() + "gp worth of items";
+            } else {
+                String playerOne = obj.get("users").getAsJsonArray().get(0).getAsString();
+                String playerTwo = obj.get("users").getAsJsonArray().get(1).getAsString();
+                return "[" + playerOne + " & " + playerTwo + "] " + playerOne + " value: " + obj.get("playerOneValue").getAsLong() + "gp, " + playerTwo + " value: " + obj.get("playerTwoValue").getAsLong() + "gp\n"
+                        + playerOne + " items: " + obj.get("playerOneItems") + "\n" +  playerTwo + " items: " + obj.get("playerTwoItems");
+            }
         }
 
-        // Trade style (global)
-        if (obj.has("playerOne") && obj.has("playerOneValue")) {
-            String playerOne = obj.get("playerOne").getAsString();
-            String playerTwo = obj.get("playerTwo").getAsString();
-            return "[" + playerOne + " & " + playerTwo + "] " + playerOne + " value: " + obj.get("playerOneValue").getAsLong() + "gp, " + playerTwo + " value: " + obj.get("playerTwoValue").getAsLong() + "gp\n"
-                    + playerOne + " items: " + obj.get("playerOneItems") + "\n" +  playerTwo + " items: " + obj.get("playerTwoItems");
-        }
-
-        // Death-ish
-        if (meta.typeId().contains("deaths/") && obj.has("killer")) {
-            return "killed by " + obj.get("killer").getAsString();
+        // Death
+        if (meta.typeId().contains("deaths/")) {
+            StringBuilder sb = new StringBuilder("killed by ");
+            if (obj.has("npc")) {
+                sb.append(obj.get("npc"));
+            } else {
+                String killer = obj.get("users").getAsJsonArray().get(0).getAsString();
+                sb.append(killer);
+                if (killer.equals(obj.get("user").getAsString())) {
+                    sb.append(" (suicide)");
+                }
+            }
+            if (obj.has("controller")) {
+                sb.append(" under controller ").append(obj.get("controller").getAsString());
+            }
+            return sb.append(" at tile(").append(obj.get("tile")).append(")").toString();
         }
 
         // Generic fallback: typeId + clipped JSON
