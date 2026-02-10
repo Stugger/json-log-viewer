@@ -1,8 +1,13 @@
 package com.stugger.logviewer.ui;
 
+import com.google.gson.*;
 import com.stugger.logviewer.MainApp;
 import com.stugger.logviewer.data.JsonlLogSource;
 import com.stugger.logviewer.model.*;
+import com.stugger.logviewer.schema.JsonValue;
+import com.stugger.logviewer.schema.Schema;
+import com.stugger.logviewer.schema.ValueFormat;
+import com.stugger.logviewer.ui.components.LogDetailsRow;
 import com.stugger.logviewer.ui.components.PlayerSelectionRow;
 import com.stugger.logviewer.ui.components.SessionTab;
 import com.stugger.logviewer.ui.model.ToggleNode;
@@ -29,7 +34,6 @@ import javafx.scene.control.cell.CheckBoxTreeCell;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Paint;
 import javafx.scene.text.FontSmoothingType;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
@@ -551,23 +555,84 @@ public class SessionController {
     }
 
     private void setupTableSelection() {
+        raw_json.setText("Select a record...");
+        details_box.getChildren().setAll(new Label("Select a record..."));
         logs_table.getSelectionModel().selectedItemProperty().addListener((obs, oldV, ev) -> {
             if (ev == null) {
-                raw_json.clear();
-                if (details_box != null) {
-                    details_box.getChildren().setAll(new Label("Select a record..."));
-                }
+                raw_json.setText("Select a record...");
+                details_box.getChildren().setAll(new Label("Select a record..."));
                 return;
             }
             raw_json.setText(ev.rawJson());
-            if (details_box != null) {
-                Label header = new Label(ev.typeId() + " • " + (ev.scope() == Scope.PLAYER ? "Player" : "Global"));
-                header.getStyleClass().add("details-header");
-                Label summary = new Label(ev.summary());
-                summary.setWrapText(true);
-                details_box.getChildren().setAll(header, summary);
-            }
+            buildLogDetailsBox(ev);
         });
+    }
+
+    private void buildLogDetailsBox(LogRecord record) {
+        details_box.getChildren().clear();
+        JsonObject obj = JsonParser.parseString(record.rawJson()).getAsJsonObject();
+        Schema.Definition schema = MainApp.getSchemaManager().getSchemaFromJsonObject(obj);
+        if (schema == null || schema.details == null || schema.details.isEmpty()) {
+            details_box.getChildren().add(new Label("No schema details configured."));
+            return;
+        }
+        int rowsAdded = 0;
+        for (Schema.FieldDefinition f : schema.details) {
+            if (f == null || f.label == null || f.label.isBlank()) {
+                continue;
+            }
+            if (f.label.equalsIgnoreCase("separator")) {
+                Separator separator = new Separator();
+                separator.setOpacity(0.4);
+                details_box.getChildren().add(separator);
+                continue;
+            }
+            JsonElement el = JsonValue.resolve(obj, f.path);
+            boolean missing = false;
+            boolean optional = Boolean.TRUE.equals(f.optional);
+            if (el == null || el.isJsonNull()) {
+                missing = true;
+            } else if (el.isJsonArray() && el.getAsJsonArray().isEmpty()) {
+                missing = true;
+            } else if (el.isJsonPrimitive()) {
+                JsonPrimitive p = el.getAsJsonPrimitive();
+                String s = el.getAsString();
+                if (p.isString()) {
+                    missing = s == null || s.isBlank();
+                } else if (p.isNumber() && optional) {
+                    if (s.indexOf('.') == -1 && s.indexOf('e') == -1 && s.indexOf('E') == -1) {
+                        try {
+                            missing = Long.parseLong(s) == 0;
+                        } catch (NumberFormatException ignored) {
+                            // treat as present
+                        }
+                    }
+                }
+            }
+            if (missing && optional) {
+                continue;
+            }
+            if (missing) {
+                details_box.getChildren().add(new LogDetailsRow(f.label, null));
+            } else if (el.isJsonPrimitive()) {
+                details_box.getChildren().add(new LogDetailsRow(f.label, ValueFormat.inline(el, f.format)));
+            } else { //object / array (raw json)
+                String s = MainApp.PRETTY_GSON.toJson(el);
+                try {
+                    details_box.getChildren().add(new LogDetailsRow(f.label, s.substring(2, s.length() - 2))); //remove open and close brackets
+                } catch (IndexOutOfBoundsException e) {
+                    details_box.getChildren().add(new LogDetailsRow(f.label, s));
+                }
+            }
+            rowsAdded++;
+        }
+        if (rowsAdded == 0) {
+            details_box.getChildren().add(new Label("No details available."));
+        }
+        details_box.getChildren().add(new Separator());
+        details_box.getChildren().add(new LogDetailsRow("Time", TIME_FMT.format(Instant.ofEpochMilli(record.timeMs()).atZone(ZoneId.systemDefault()).toLocalDateTime())));
+        details_box.getChildren().add(new LogDetailsRow("Type", record.scope().folderName + "/" + (record.scope() == Scope.PLAYER ? record.player() + "/" : "") + record.typeId()));
+        details_box.getChildren().add(new LogDetailsRow("Schema", schema.schemaId));
     }
 
     /* -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -738,7 +803,11 @@ public class SessionController {
             allEvents.setAll(task.getValue());
             lastLoadedScopes = getEnabledScopesFromTree(); // capture what was used
             refilter();
-            main.setStatus("Loaded " + allEvents.size() + " events");
+            if (allEvents.size() == filteredEvents.size()) {
+                main.setStatus("Loaded " + allEvents.size() + " events");
+            } else {
+                main.setStatus("Showing " + filteredEvents.size() + " events");
+            }
         });
 
         task.setOnFailed(e -> {

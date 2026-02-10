@@ -15,16 +15,17 @@ import java.time.format.DateTimeFormatter;
  */
 public class Settings {
 
-    public static final String FILE_LOCATION = System.getProperty("user.home") + File.separator + ".log_viewer_settings.json";
+    public static final String FILE_PATH = MainApp.USER_DATA_DIRECTORY + File.separator + "settings.json";
+    public static final String SCHEMAS_PATH = MainApp.USER_DATA_DIRECTORY + File.separator + "schemas";
 
     private static final String DEFAULT_FILE_NAME_FORMAT = "yyyy_MM_dd";
     private static final String DEFAULT_FILE_NAME_EXTENSION = ".jsonl";
     private static final DayRange DEFAULT_TIME_RANGE = DayRange.ZERO_DAYS;
 
-    private final Gson builder = new GsonBuilder().setPrettyPrinting().create();
-
     private String gameName;
     private String defaultRootDirectory;
+
+    private String schemasDirectory = SCHEMAS_PATH;
     private String logFileNameFormat = DEFAULT_FILE_NAME_FORMAT;
     private String logFileNameExtension = DEFAULT_FILE_NAME_EXTENSION;
     private DayRange defaultIncludedDays = DEFAULT_TIME_RANGE;
@@ -37,14 +38,20 @@ public class Settings {
     }
 
     public void load() {
-        File file = new File(FILE_LOCATION);
         System.out.println("Loading settings...");
+        File file = new File(SCHEMAS_PATH);
+        if (!file.exists()) {
+            if (!file.mkdirs()) {
+                System.err.println("Failed to create schemas directory at: " + SCHEMAS_PATH);
+            }
+        }
+        file = new File(FILE_PATH);
         if (!file.exists()) {
             save();
             logFileNameFormatter = DateTimeFormatter.ofPattern(logFileNameFormat);
             return;
         }
-        try (FileReader reader = new FileReader(Paths.get(FILE_LOCATION).toFile())) {
+        try (FileReader reader = new FileReader(Paths.get(FILE_PATH).toFile())) {
             JsonElement root = JsonParser.parseReader(reader);
             if (root == null || root.isJsonNull()) {
                 save();
@@ -55,6 +62,7 @@ public class Settings {
             //read with defaults (so missing keys don't null out fields)
             gameName = getString(j, "gameName", gameName);
             defaultRootDirectory = getString(j, "defaultRootDirectory", defaultRootDirectory);
+            schemasDirectory = getString(j, "schemasDirectory", schemasDirectory);
             logFileNameFormat = getString(j, "logFileNameFormat", logFileNameFormat);
             logFileNameExtension = getString(j, "logFileNameExtension", logFileNameExtension);
             defaultIncludedDays = DayRange.valueOf(getString(j, "defaultIncludedDays", defaultIncludedDays.name()));
@@ -80,13 +88,14 @@ public class Settings {
         JsonObject obj = new JsonObject();
         obj.addProperty("gameName", gameName);
         obj.addProperty("defaultRootDirectory", defaultRootDirectory);
+        obj.addProperty("schemasDirectory", schemasDirectory);
         obj.addProperty("logFileNameFormat", logFileNameFormat);
         obj.addProperty("logFileNameExtension", logFileNameExtension);
         obj.addProperty("defaultIncludedDays", defaultIncludedDays.name());
         obj.addProperty("openNewSessionOnLaunch", openNewSessionOnLaunch);
-        File file = Paths.get(FILE_LOCATION).toFile();
+        File file = Paths.get(FILE_PATH).toFile();
         try (FileWriter writer = new FileWriter(file)) {
-            writer.write(builder.toJson(obj));
+            writer.write(MainApp.PRETTY_GSON.toJson(obj));
             logFileNameFormatter = DateTimeFormatter.ofPattern(logFileNameFormat);
         } catch (Exception e) {
             AlertManager.notifyException(e);
@@ -99,6 +108,10 @@ public class Settings {
 
     public void setDefaultRootDirectory(String defaultRootDirectory) {
         this.defaultRootDirectory = defaultRootDirectory;
+    }
+
+    public void setSchemasDirectory(String schemasDirectory) {
+        this.schemasDirectory = schemasDirectory;
     }
 
     public void setLogFileNameFormat(String logFileNameFormat) {
@@ -123,6 +136,10 @@ public class Settings {
 
     public String getDefaultRootDirectory() {
         return defaultRootDirectory;
+    }
+
+    public String getSchemasDirectory() {
+        return schemasDirectory;
     }
 
     public String getLogFileNameFormat() {

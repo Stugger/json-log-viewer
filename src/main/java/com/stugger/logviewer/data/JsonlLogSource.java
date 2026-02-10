@@ -5,6 +5,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.stugger.logviewer.MainApp;
 import com.stugger.logviewer.model.*;
+import com.stugger.logviewer.schema.Schema;
+import com.stugger.logviewer.schema.SummaryTemplate;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -80,10 +82,10 @@ public class JsonlLogSource implements LogSource {
         }
         try {
             JsonObject obj = JsonParser.parseString(rawLine).getAsJsonObject();
-            if (!obj.has("ts")) {
+            if (!obj.has("timeMs")) {
                 return null;
             }
-            long timeMs = obj.get("ts").getAsLong();
+            long timeMs = obj.get("timeMs").getAsLong();
             if (timeMs <= 0) {
                 return null;
             }
@@ -94,17 +96,20 @@ public class JsonlLogSource implements LogSource {
                     return null;
                 }
             }
-            String summary = fallbackSummary(obj, meta, rawLine);
+            Schema.Definition schema = MainApp.getSchemaManager().getSchemaFromJsonObject(obj);
+            String summary = schema != null ? SummaryTemplate.render(schema.summary, obj)
+                    : rawLine.length() > 140 ? rawLine.substring(0, 140) + "…" : rawLine;
             return new LogRecord(
                     timeMs,
                     meta.scope,
                     meta.username,
                     meta.typeId,
                     summary,
-                    rawLine
+                    MainApp.PRETTY_GSON.toJson(obj)
             );
-        } catch (Exception ignored) {
+        } catch (Exception ex) {
             //bad JSON line or partial write; skip
+            ex.printStackTrace();
             return null;
         }
     }
@@ -145,88 +150,6 @@ public class JsonlLogSource implements LogSource {
             }
         }
         return false;
-    }
-
-    //TODO will be replaced with schema architecture - currently reflects my own use case
-    private static String fallbackSummary(JsonObject obj, PathMeta meta, String rawLine) {
-        // Staff action style
-        if (meta.typeId().contains("staff_actions")) {
-            return obj.get("user").getAsString() + ": " + obj.get("info").getAsString();
-        }
-
-        // Login
-        if (meta.typeId().contains("login")) {
-            return obj.get("user").getAsString() + ": ip=" + obj.get("ip").getAsString() + ", mac=" + obj.get("mac").getAsString() + ", pcuid=" + obj.get("pcuid").getAsString();
-        }
-
-        // Command style
-        if (obj.has("command")) {
-            return ";;" + obj.get("command").getAsString() + (obj.has("additionalInfo") ? " " + obj.get("additionalInfo").getAsString() : "");
-        }
-
-        // Chat style
-        if (meta.typeId().contains("chat/") && obj.has("message")) {
-            StringBuilder sb = new StringBuilder();
-            if (obj.has("chunkX")) { //public
-                sb.append("[").append(obj.get("chunkX").getAsInt()).append(", ").append(obj.get("chunkY").getAsInt()).append(", ").append(obj.get("plane").getAsInt()).append("] ");
-            } else if (obj.has("channel")) { //friends
-                sb.append("[").append(obj.get("channel").getAsString()).append("] ");
-            } else if (obj.has("activityName")) { //party
-                sb.append("[").append(obj.get("activityName").getAsString()).append("] ");
-            } else if (obj.has("groupName")) { //irongroup
-                sb.append("[").append(obj.get("groupName").getAsString()).append("] ");
-            } else if (!obj.get("users").getAsJsonArray().isEmpty()) { //direct
-                sb.append("[to ").append(obj.get("users").getAsJsonArray().get(0).getAsString()).append("] ");
-            }
-            sb.append(obj.get("user").getAsString()).append(": ").append(obj.get("message").getAsString());
-            return sb.toString();
-        }
-
-        // Items style
-        if (meta.typeId().contains("items/") && obj.has("item")) {
-            StringBuilder sb = new StringBuilder(meta.typeId().replace("items/", "") + " " + obj.get("item"));
-            if (obj.has("tile")) {
-                sb.append(" at tile(").append(obj.get("tile")).append(")");
-            }
-            if (!obj.get("users").getAsJsonArray().isEmpty()) {
-                sb.append(", owner=").append(obj.get("users").getAsJsonArray().get(0).getAsString());
-            }
-            return sb.toString();
-        }
-
-        // Trade style
-        if (meta.typeId().contains("trades")) {
-            if (meta.scope() == Scope.PLAYER) {
-                return "traded with " + obj.get("users").getAsJsonArray().get(0).getAsString() + ": gave " + obj.get("gaveValue").getAsLong() + "gp worth of items in exchange for " + obj.get("receivedValue").getAsLong() + "gp worth of items";
-            } else {
-                String playerOne = obj.get("users").getAsJsonArray().get(0).getAsString();
-                String playerTwo = obj.get("users").getAsJsonArray().get(1).getAsString();
-                return "[" + playerOne + " & " + playerTwo + "] " + playerOne + " value: " + obj.get("playerOneValue").getAsLong() + "gp, " + playerTwo + " value: " + obj.get("playerTwoValue").getAsLong() + "gp\n"
-                        + playerOne + " items: " + obj.get("playerOneItems") + "\n" +  playerTwo + " items: " + obj.get("playerTwoItems");
-            }
-        }
-
-        // Death
-        if (meta.typeId().contains("deaths/")) {
-            StringBuilder sb = new StringBuilder("killed by ");
-            if (obj.has("npc")) {
-                sb.append(obj.get("npc"));
-            } else {
-                String killer = obj.get("users").getAsJsonArray().get(0).getAsString();
-                sb.append(killer);
-                if (killer.equals(obj.get("user").getAsString())) {
-                    sb.append(" (suicide)");
-                }
-            }
-            if (obj.has("controller")) {
-                sb.append(" under controller ").append(obj.get("controller").getAsString());
-            }
-            return sb.append(" at tile(").append(obj.get("tile")).append(")").toString();
-        }
-
-        // Generic fallback: typeId + clipped JSON
-        String clipped = rawLine.length() > 140 ? rawLine.substring(0, 140) + "…" : rawLine;
-        return meta.typeId + " • " + clipped;
     }
 
     private static List<Path> resolveFiles(Path logsRoot, LogQuery query) throws IOException {

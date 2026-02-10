@@ -16,7 +16,7 @@ public class SettingsController {
 
     private Stage stage;
 
-    @FXML private TextField game_name, default_root, log_file_name_format, log_file_name_extension;
+    @FXML private TextField game_name, default_root, schemas_directory, log_file_name_format, log_file_name_extension;
     @FXML private ComboBox<DayRange> default_time;
     @FXML private CheckBox new_session_on_launch;
 
@@ -29,6 +29,7 @@ public class SettingsController {
 
         game_name.setText(settings.getGameName());
         default_root.setText(settings.getDefaultRootDirectory());
+        schemas_directory.setText(settings.getSchemasDirectory());
         log_file_name_format.setText(settings.getLogFileNameFormat());
         log_file_name_extension.setText(settings.getLogFileNameExtension());
 
@@ -106,6 +107,27 @@ public class SettingsController {
         }
         default_root.setText("");
         new_session_on_launch.setDisable(true);
+        dirty = true;
+    }
+
+    @FXML
+    public void on_choose_schemas_dir() {
+        final DirectoryChooser directoryChooser = new DirectoryChooser();
+        final File directory = directoryChooser.showDialog(MainApp.getStage());
+        if (directory == null) {
+            return;
+        }
+        schemas_directory.setText(directory.toString());
+        dirty = true;
+        stage.toFront();
+    }
+
+    @FXML
+    public void on_reset_schemas_dir() {
+        if (schemas_directory.getText().equals(Settings.SCHEMAS_PATH)) {
+            return;
+        }
+        schemas_directory.setText(Settings.SCHEMAS_PATH);
         dirty = true;
     }
 }

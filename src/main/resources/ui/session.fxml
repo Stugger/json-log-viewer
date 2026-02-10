@@ -69,8 +69,9 @@
                             <Tab closable="false" text="Details">
                                 <ScrollPane fitToWidth="true">
                                     <VBox fx:id="details_box" spacing="8" styleClass="panel">
-                                        <Label text="Select a record..." wrapText="true" />
-                                    </VBox>
+                                 <padding>
+                                    <Insets top="8.0" />
+                                 </padding></VBox>
                                 </ScrollPane>
                             </Tab>
                             <Tab closable="false" text="Raw JSON">

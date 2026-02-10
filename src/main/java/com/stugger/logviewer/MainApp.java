@@ -1,6 +1,9 @@
 package com.stugger.logviewer;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.stugger.logviewer.model.*;
+import com.stugger.logviewer.schema.SchemaManager;
 import com.stugger.logviewer.ui.AlertManager;
 import com.stugger.logviewer.ui.MainController;
 import javafx.application.Application;
@@ -23,21 +26,29 @@ public class MainApp extends Application {
 
     private static final String TITLE = "Game Log Viewer";
 
+    public static final String USER_DATA_DIRECTORY = System.getProperty("user.home") + File.separator + ".log_viewer";
+
     private static Stage stage;
     private static MainController mainController;
 
     private static Settings settings;
+
+    private static SchemaManager schemaManager;
 
     private static File rootDirectory;
 
     public static final Map<String, Set<String>> PLAYER_TREE_FOLDER_NAMES = new TreeMap<>();
     public static final Map<String, Set<String>> GLOBAL_TREE_FOLDER_NAMES = new TreeMap<>();
 
+    public static final Gson PRETTY_GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+
     @Override
     public void start(Stage stage) throws IOException {
         MainApp.stage = stage;
         settings = new Settings();
         settings.load();
+        schemaManager = new SchemaManager();
+        schemaManager.loadSchemas();
         FXMLLoader loader = new FXMLLoader(
                 MainApp.class.getResource("/ui/main.fxml")
         );
@@ -158,6 +169,10 @@ public class MainApp extends Application {
 
     public static Settings getSettings() {
         return settings;
+    }
+
+    public static SchemaManager getSchemaManager() {
+        return schemaManager;
     }
 
     public static File getRootDirectory() {

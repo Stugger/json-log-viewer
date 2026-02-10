@@ -86,7 +86,7 @@ public class MainController {
         Parent root;
         FXMLLoader loader = new FXMLLoader(MainApp.class.getResource("/ui/settings.fxml"));
         root = loader.load();
-        Scene scene = new Scene(root, 600, 270);
+        Scene scene = new Scene(root, 600, 310);
         scene.getStylesheets().add(
                 Objects.requireNonNull(MainApp.class.getResource("/ui/theme-dark.css")).toExternalForm()
         );
@@ -100,6 +100,12 @@ public class MainController {
         stage.initOwner(MainApp.getStage());
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.show();
+    }
+
+    @FXML
+    private void on_click_reload_schemas() {
+        MainApp.getSchemaManager().loadSchemas();
+        setStatus("Reloaded schemas");
     }
 
     public void openNewSession() throws IOException {
