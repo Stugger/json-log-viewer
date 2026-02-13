@@ -1,13 +1,18 @@
-package com.stugger.logviewer.schema;
+package com.stugger.logviewer.schema.render;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Parsed representation of a JSON path used by schemas.
+ * <p>
+ * Supports object keys, array indexes, and small virtual helpers (e.g. .length) via
+ * a list of resolution steps evaluated against a JSON root object.
  *
  * @author Jake
  * @since February 8, 2026
@@ -21,6 +26,19 @@ public record PathToken(List<Step> steps) {
                 return null;
             }
             if (s instanceof KeyStep(String key)) {
+                // virtual .length
+                if ("length".equals(key)) {
+                    if (cur.isJsonArray()) {
+                        return new JsonPrimitive(cur.getAsJsonArray().size());
+                    }
+                    if (cur.isJsonObject()) {
+                        return new JsonPrimitive(cur.getAsJsonObject().size());
+                    }
+                    if (cur.isJsonPrimitive() && cur.getAsJsonPrimitive().isString()) {
+                        return new JsonPrimitive(cur.getAsString().length());
+                    }
+                    return null;
+                }
                 if (!cur.isJsonObject()) {
                     return null;
                 }

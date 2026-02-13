@@ -2,15 +2,16 @@ package com.stugger.logviewer.ui.components;
 
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
 
 /**
+ * UI component representing a single labeled field in the Details panel.
+ * <p>
+ * Displays a label and a selectable value area, with automatic sizing behavior to
+ * keep dense details readable without wasting vertical space.
  *
  * @author Jake
  * @since February 9, 2026
@@ -36,7 +37,6 @@ public class LogDetailsRow extends HBox {
         //label
         Label label = new Label(labelString);
         label.getStyleClass().add("log-detail-label");
-        label.setFont(new Font(12));
         label.setMinWidth(66);
         label.setPrefWidth(66);
         label.setMaxWidth(66);
@@ -46,9 +46,11 @@ public class LogDetailsRow extends HBox {
         HBox.setHgrow(label, Priority.NEVER);
         //value
         if (valueString == null) {
+            label.setOpacity(0.7);
             Label valueLabel = new Label("—");
             valueLabel.setMinHeight(26);
-            HBox.setMargin(valueLabel, new Insets(-1, 0, 0, 6));
+            valueLabel.setOpacity(0.7);
+            HBox.setMargin(valueLabel, new Insets(-1, 0, 0, 8));
             getChildren().add(valueLabel);
         } else {
             TextArea textArea = new TextArea(valueString);

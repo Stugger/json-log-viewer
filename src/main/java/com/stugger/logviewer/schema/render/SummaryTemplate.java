@@ -1,4 +1,4 @@
-package com.stugger.logviewer.schema;
+package com.stugger.logviewer.schema.render;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -8,16 +8,17 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Renders templates like: "[${tile.x}, ${tile.y}, ${tile.p}] ${user}: ${msg}"
- *<p>
+ * Compiles and renders summary templates against JSON log objects like: "[${tile.x}, ${tile.y}, ${tile.p}] ${user}: ${msg}"
+ * <p>
  * Supports:
  * <ul>
  *    <li>dot access: tile.x
  *    <li>array index: users[0]
  *    <li>coalesce: ${users[0] || npc}
  *    <li>optional groups: [[ ... ]] (rendered only if any expression inside produces a non-empty value)
+ *    <li>optional group else branches: [[ TRY ||| ELSE ]] (if TRY expression produces an empty value then render ELSE expression)
  * </ul>
- *<p>
+ * <p>
  * Templates are compiled and cached so we do NOT parse expressions per log line.
  *
  * @author Jake
@@ -60,12 +61,12 @@ public final class SummaryTemplate {
 
         while (i < endIdx) {
             int exprStart = template.indexOf("${", i);
-            int optStart  = template.indexOf("[[", i);
+            int optStart = template.indexOf("[[", i);
             if (exprStart >= endIdx) {
                 exprStart = -1;
             }
-            if (optStart  >= endIdx) {
-                optStart  = -1;
+            if (optStart >= endIdx) {
+                optStart = -1;
             }
             int next;
             TokenKind kind;
@@ -117,9 +118,23 @@ public final class SummaryTemplate {
                 break;
             }
 
-            //compile inner body recursively
-            CompiledTemplate group = compileRange(template, next + 2, close);
-            parts.add(new OptionalGroupPart(group));
+            //extract inner text
+            String inner = template.substring(next + 2, close);
+
+            //split on first "|||"
+            int bar = inner.indexOf("|||");
+            if (bar == -1) {
+                CompiledTemplate thenGroup = compileRange(inner, 0, inner.length());
+                parts.add(new OptionalGroupPart(thenGroup, null));
+            } else {
+                String thenSrc = inner.substring(0, bar);
+                String elseSrc = inner.substring(bar + 3);
+
+                CompiledTemplate thenGroup = compileRange(thenSrc, 0, thenSrc.length());
+                CompiledTemplate elseGroup = elseSrc.isBlank() ? null : compileRange(elseSrc, 0, elseSrc.length());
+
+                parts.add(new OptionalGroupPart(thenGroup, elseGroup));
+            }
 
             i = close + 2;
         }
@@ -190,38 +205,44 @@ public final class SummaryTemplate {
     /**
      * Optional group: only included if at least one expression inside produced a non-empty value.
      */
-    private record OptionalGroupPart(CompiledTemplate group) implements Part {
-
+    private record OptionalGroupPart(CompiledTemplate thenGroup, CompiledTemplate elseGroup) implements Part {
         @Override
         public void append(RenderCtx ctx, JsonObject obj) {
             StringBuilder tmp = new StringBuilder();
             RenderCtx inner = new RenderCtx(tmp);
-            for (Part p : group.parts) {
+            for (Part p : thenGroup.parts) {
                 p.append(inner, obj);
             }
             if (inner.hadValue) {
                 ctx.out.append(tmp);
                 ctx.hadValue = true;
+                return;
+            }
+            //else branch (if present)
+            if (elseGroup != null) {
+                for (Part p : elseGroup.parts) {
+                    p.append(ctx, obj);
+                }
+                //NOTE: do NOT force ctx.hadValue=true here
+                //else is allowed to be literal-only and should not "activate" outer optional groups
             }
         }
     }
 
+
     /* -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
     |
-    |------ Expr Parsing
+    |------ Expression Parsing
     |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
-    /**
-     * @param format null, "raw", "commas"
-     */
     private record Candidate(String path, String format) { }
 
     /**
      * Parses:
-     *   users[0] || npc
+     * users[0] || npc
      * and supports per-candidate:
-     *   users[0]:raw || npc
+     * users[0]:raw || npc
      */
     private static List<Candidate> parseCandidates(String expr) {
         String[] parts = expr.split("\\|\\|");
@@ -231,7 +252,7 @@ public final class SummaryTemplate {
             if (s.isEmpty()) {
                 continue;
             }
-            String path = s;
+            String path;
             String fmt = null;
             int colon = s.indexOf(':');
             if (colon != -1) {

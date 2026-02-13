@@ -4,9 +4,11 @@ import com.google.gson.*;
 import com.stugger.logviewer.MainApp;
 import com.stugger.logviewer.data.JsonlLogSource;
 import com.stugger.logviewer.model.*;
-import com.stugger.logviewer.schema.JsonValue;
-import com.stugger.logviewer.schema.Schema;
-import com.stugger.logviewer.schema.ValueFormat;
+import com.stugger.logviewer.schema.render.DetailsValueFormat;
+import com.stugger.logviewer.schema.render.JsonValue;
+import com.stugger.logviewer.schema.render.ValueFormat;
+import com.stugger.logviewer.schema.model.SchemaDefinition;
+import com.stugger.logviewer.schema.model.SchemaFieldDefinition;
 import com.stugger.logviewer.ui.components.LogDetailsRow;
 import com.stugger.logviewer.ui.components.PlayerSelectionRow;
 import com.stugger.logviewer.ui.components.SessionTab;
@@ -52,7 +54,7 @@ import java.util.stream.Stream;
 /**
  * Controller for a single audit session tab.
  * <p>
- * Owns the end-to-end UI state for V1:
+ * Owns the end-to-end UI state:
  * player selection, scope/type toggle tree, time window selection, and free-text searching.
  * Loads log records from disk via {@link JsonlLogSource} on scope/player/date changes, then
  * applies lightweight in-memory filtering (tree + search) and table sorting.
@@ -104,7 +106,8 @@ public class SessionController {
     private final Set<PlayerSelectionRow> selectedPlayers = new HashSet<>();
     private final BooleanProperty playersSelectionValid = new SimpleBooleanProperty(false);
 
-    private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("yyyy/MM/dd '-' HH:mm:ss").withLocale(Locale.US);
+    private static final DateTimeFormatter TIME_TABLE_FMT = DateTimeFormatter.ofPattern("yyyy/MM/dd '-' HH:mm:ss").withLocale(Locale.US);
+    private static final DateTimeFormatter TIME_DETAIL_FMT = DateTimeFormatter.ofPattern("h:mm:ss a 'on' MMMM d',' yyyy").withLocale(Locale.US);
 
     public void setTab(SessionTab tab) {
         this.tab = tab;
@@ -481,7 +484,7 @@ public class SessionController {
                 if (empty || timeMs == null) {
                     setText(null);
                 } else {
-                    setText(TIME_FMT.format(Instant.ofEpochMilli(timeMs).atZone(ZoneId.systemDefault()).toLocalDateTime()));
+                    setText(TIME_TABLE_FMT.format(Instant.ofEpochMilli(timeMs).atZone(ZoneId.systemDefault()).toLocalDateTime()));
                 }
                 setAlignment(Pos.CENTER_LEFT);
             }
@@ -571,20 +574,29 @@ public class SessionController {
     private void buildLogDetailsBox(LogRecord record) {
         details_box.getChildren().clear();
         JsonObject obj = JsonParser.parseString(record.rawJson()).getAsJsonObject();
-        Schema.Definition schema = MainApp.getSchemaManager().getSchemaFromJsonObject(obj);
+        SchemaDefinition schema = MainApp.getSchemaLoader().getSchemaFromJsonObject(obj);
         if (schema == null || schema.details == null || schema.details.isEmpty()) {
             details_box.getChildren().add(new Label("No schema details configured."));
             return;
         }
+        Label schemaNameLabel = new Label(schema.displayName);
+        schemaNameLabel.getStyleClass().add("log-schema-name");
+        details_box.getChildren().add(schemaNameLabel);
+        details_box.getChildren().add(new Separator());
+        int rowsAdded = buildDetailRows(schema, obj);
+        if (rowsAdded == 0) {
+            details_box.getChildren().add(new Label("No details available."));
+        }
+        details_box.getChildren().add(new Separator());
+        details_box.getChildren().add(new LogDetailsRow("Time", TIME_DETAIL_FMT.format(Instant.ofEpochMilli(record.timeMs()).atZone(ZoneId.systemDefault()).toLocalDateTime())));
+        details_box.getChildren().add(new LogDetailsRow("Path", record.scope().folderName + "/" + (record.scope() == Scope.PLAYER ? record.player() + "/" : "") + record.typeId()));
+        details_box.getChildren().add(new LogDetailsRow("Schema", schema.schemaId));
+    }
+
+    private int buildDetailRows(SchemaDefinition schema, JsonObject obj) {
         int rowsAdded = 0;
-        for (Schema.FieldDefinition f : schema.details) {
+        for (SchemaFieldDefinition f : schema.details) {
             if (f == null || f.label == null || f.label.isBlank()) {
-                continue;
-            }
-            if (f.label.equalsIgnoreCase("separator")) {
-                Separator separator = new Separator();
-                separator.setOpacity(0.4);
-                details_box.getChildren().add(separator);
                 continue;
             }
             JsonElement el = JsonValue.resolve(obj, f.path);
@@ -604,7 +616,7 @@ public class SessionController {
                         try {
                             missing = Long.parseLong(s) == 0;
                         } catch (NumberFormatException ignored) {
-                            // treat as present
+                            //treat as present
                         }
                     }
                 }
@@ -617,22 +629,11 @@ public class SessionController {
             } else if (el.isJsonPrimitive()) {
                 details_box.getChildren().add(new LogDetailsRow(f.label, ValueFormat.inline(el, f.format)));
             } else { //object / array (raw json)
-                String s = MainApp.PRETTY_GSON.toJson(el);
-                try {
-                    details_box.getChildren().add(new LogDetailsRow(f.label, s.substring(2, s.length() - 2))); //remove open and close brackets
-                } catch (IndexOutOfBoundsException e) {
-                    details_box.getChildren().add(new LogDetailsRow(f.label, s));
-                }
+                details_box.getChildren().add(new LogDetailsRow(f.label, DetailsValueFormat.complex(el, f.render)));
             }
             rowsAdded++;
         }
-        if (rowsAdded == 0) {
-            details_box.getChildren().add(new Label("No details available."));
-        }
-        details_box.getChildren().add(new Separator());
-        details_box.getChildren().add(new LogDetailsRow("Time", TIME_FMT.format(Instant.ofEpochMilli(record.timeMs()).atZone(ZoneId.systemDefault()).toLocalDateTime())));
-        details_box.getChildren().add(new LogDetailsRow("Type", record.scope().folderName + "/" + (record.scope() == Scope.PLAYER ? record.player() + "/" : "") + record.typeId()));
-        details_box.getChildren().add(new LogDetailsRow("Schema", schema.schemaId));
+        return rowsAdded;
     }
 
     /* -----------------------------------------------------------------------------------------------------------------------------------------------------------------------

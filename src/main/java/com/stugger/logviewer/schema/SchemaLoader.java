@@ -2,6 +2,11 @@ package com.stugger.logviewer.schema;
 
 import com.google.gson.JsonObject;
 import com.stugger.logviewer.MainApp;
+import com.stugger.logviewer.schema.model.RenderMode;
+import com.stugger.logviewer.schema.model.SchemaDefinition;
+import com.stugger.logviewer.schema.model.SchemaFieldDefinition;
+import com.stugger.logviewer.schema.render.JsonValue;
+import com.stugger.logviewer.schema.render.SummaryTemplate;
 import org.snakeyaml.engine.v2.api.Load;
 import org.snakeyaml.engine.v2.api.LoadSettings;
 
@@ -10,31 +15,34 @@ import java.nio.file.*;
 import java.util.*;
 
 /**
+ * Loads YAML schema files and builds a registry used during rendering.
+ * <p>
+ * Supports loading from the configured schema directory.
  *
  * @author Jake
  * @since February 6, 2026
  */
-public final class SchemaManager {
+public final class SchemaLoader {
 
-    private final Map<String, Schema.Definition> byId = new HashMap<>();
+    private final Map<String, SchemaDefinition> byId = new HashMap<>();
 
-    public SchemaManager() {}
+    public SchemaLoader() {}
 
-    public void loadSchemas() {
+    public void load() {
         SummaryTemplate.clearCache();
         JsonValue.clearCache();
-        List<Schema.Definition> schemas = loadFromDirectory(Path.of(MainApp.getSettings().getSchemasDirectory()));
+        List<SchemaDefinition> schemas = loadFromDirectory(Path.of(MainApp.getSettings().getSchemasDirectory()));
         validate(schemas);
-        for (Schema.Definition sd : schemas) {
+        for (SchemaDefinition sd : schemas) {
             byId.put(sd.schemaId, sd);
         }
     }
 
-    public Schema.Definition getSchemaFromJsonObject(JsonObject obj) {
+    public SchemaDefinition getSchemaFromJsonObject(JsonObject obj) {
         if (obj != null && obj.has("schemaId")) {
             try {
                 String sid = obj.get("schemaId").getAsString();
-                Schema.Definition d = byId.get(sid);
+                SchemaDefinition d = byId.get(sid);
                 if (d != null) {
                     return d;
                 }
@@ -43,12 +51,12 @@ public final class SchemaManager {
         return null;
     }
 
-    private static List<Schema.Definition> loadFromDirectory(Path dir) {
+    private static List<SchemaDefinition> loadFromDirectory(Path dir) {
         if (dir == null || !Files.isDirectory(dir)) {
             return List.of();
         }
 
-        List<Schema.Definition> out = new ArrayList<>();
+        List<SchemaDefinition> out = new ArrayList<>();
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, "*.{yml,yaml}")) {
             for (Path p : stream) {
                 out.addAll(loadYamlFile(p));
@@ -59,14 +67,14 @@ public final class SchemaManager {
         return out;
     }
 
-    private static List<Schema.Definition> loadYamlFile(Path p) throws Exception {
+    private static List<SchemaDefinition> loadYamlFile(Path p) throws Exception {
         try (InputStream in = Files.newInputStream(p)) {
             return loadYamlStream(in);
         }
     }
 
     @SuppressWarnings("unchecked")
-    private static List<Schema.Definition> loadYamlStream(InputStream in) {
+    private static List<SchemaDefinition> loadYamlStream(InputStream in) {
         //SnakeYAML engine loads to Maps by default - we'll map manually into POJOs (simple and robust)
         LoadSettings settings = LoadSettings.builder().build();
         Load load = new Load(settings);
@@ -81,16 +89,16 @@ public final class SchemaManager {
             return List.of();
         }
 
-        List<Schema.Definition> defs = new ArrayList<>();
+        List<SchemaDefinition> schemas = new ArrayList<>();
         for (Object item : list) {
             if (!(item instanceof Map<?, ?> sm)) continue;
-            defs.add(mapToSchemaDef((Map<String, Object>) sm));
+            schemas.add(mapToSchemaDefinition((Map<String, Object>) sm));
         }
-        return defs;
+        return schemas;
     }
 
-    private static Schema.Definition mapToSchemaDef(Map<String, Object> m) {
-        Schema.Definition d = new Schema.Definition();
+    private static SchemaDefinition mapToSchemaDefinition(Map<String, Object> m) {
+        SchemaDefinition d = new SchemaDefinition();
         d.schemaId = asString(m.get("schemaId"));
         d.displayName = asString(m.get("displayName"));
         d.summary = asString(m.get("summary"));
@@ -102,11 +110,11 @@ public final class SchemaManager {
                 if (!(item instanceof Map<?, ?> fm)) {
                     continue;
                 }
-                Schema.FieldDefinition f = new Schema.FieldDefinition();
+                SchemaFieldDefinition f = new SchemaFieldDefinition();
                 f.label = asString(fm.get("label"));
                 f.path = asString(fm.get("path"));
                 f.format = asString(fm.get("format"));
-                //f.render = asString(fm.get("render"));
+                f.render = RenderMode.from(asString(fm.get("render")));
                 Object opt = fm.get("optional");
                 f.optional = opt instanceof Boolean b ? b : null;
                 d.details.add(f);
@@ -116,9 +124,9 @@ public final class SchemaManager {
         return d;
     }
 
-    private static void validate(List<Schema.Definition> defs) {
+    private static void validate(List<SchemaDefinition> schemas) {
         Set<String> ids = new HashSet<>();
-        for (Schema.Definition d : defs) {
+        for (SchemaDefinition d : schemas) {
             if (d.schemaId == null || d.schemaId.isBlank()) {
                 throw new IllegalStateException("Schema missing schemaId");
             }

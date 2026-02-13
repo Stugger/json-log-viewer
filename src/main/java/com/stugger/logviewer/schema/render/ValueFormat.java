@@ -1,4 +1,4 @@
-package com.stugger.logviewer.schema;
+package com.stugger.logviewer.schema.render;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
@@ -6,6 +6,10 @@ import com.google.gson.JsonPrimitive;
 import java.text.DecimalFormat;
 
 /**
+ * Formatting utilities for values rendered from JSON.
+ * <p>
+ * Provides compact inline rendering for summaries and shared helpers for number formatting
+ * (e.g., comma grouping) while keeping output predictable and non-game-specific.
  *
  * @author Jake
  * @since February 8, 2026

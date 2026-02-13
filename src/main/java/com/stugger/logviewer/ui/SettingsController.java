@@ -1,5 +1,6 @@
 package com.stugger.logviewer.ui;
 
+import com.stugger.logviewer.AppPaths;
 import com.stugger.logviewer.MainApp;
 import com.stugger.logviewer.Settings;
 import com.stugger.logviewer.model.DayRange;
@@ -12,6 +13,15 @@ import java.io.File;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
+/**
+ * Controller for the Settings dialog/window.
+ * <p>
+ * Allows configuration of logs root directory, schema directory, and other persisted
+ * options, and triggers reloads where appropriate.
+ *
+ * @author Jake
+ * @since January 27, 2026
+ */
 public class SettingsController {
 
     private Stage stage;
@@ -71,6 +81,7 @@ public class SettingsController {
             } else if (result.get() == ButtonType.YES) {
                 settings.setGameName(game_name.getText());
                 settings.setDefaultRootDirectory(default_root.getText());
+                settings.setSchemasDirectory(schemas_directory.getText());
                 settings.setLogFileNameFormat(log_file_name_format.getText());
                 settings.setLogFileNameExtension(log_file_name_extension.getText());
                 settings.setDefaultIncludedDays(default_time.getSelectionModel().getSelectedItem());
@@ -124,10 +135,10 @@ public class SettingsController {
 
     @FXML
     public void on_reset_schemas_dir() {
-        if (schemas_directory.getText().equals(Settings.SCHEMAS_PATH)) {
+        if (schemas_directory.getText().equals(AppPaths.SCHEMAS_DEFAULT_DIRECTORY)) {
             return;
         }
-        schemas_directory.setText(Settings.SCHEMAS_PATH);
+        schemas_directory.setText(AppPaths.SCHEMAS_DEFAULT_DIRECTORY);
         dirty = true;
     }
 }

@@ -3,7 +3,7 @@ package com.stugger.logviewer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.stugger.logviewer.model.*;
-import com.stugger.logviewer.schema.SchemaManager;
+import com.stugger.logviewer.schema.SchemaLoader;
 import com.stugger.logviewer.ui.AlertManager;
 import com.stugger.logviewer.ui.MainController;
 import javafx.application.Application;
@@ -18,6 +18,10 @@ import java.io.IOException;
 import java.util.*;
 
 /**
+ * Application entry point and global app state holder.
+ * <p>
+ * Owns primary stage lifecycle, settings access, root logs directory selection,
+ * and shared managers used across controllers (schema loading, etc.).
  *
  * @author Jake
  * @since January 19, 2026
@@ -26,14 +30,12 @@ public class MainApp extends Application {
 
     private static final String TITLE = "Game Log Viewer";
 
-    public static final String USER_DATA_DIRECTORY = System.getProperty("user.home") + File.separator + ".log_viewer";
-
     private static Stage stage;
     private static MainController mainController;
 
     private static Settings settings;
 
-    private static SchemaManager schemaManager;
+    private static SchemaLoader schemaLoader;
 
     private static File rootDirectory;
 
@@ -45,10 +47,11 @@ public class MainApp extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         MainApp.stage = stage;
+        AppPaths.checkDefaults();
         settings = new Settings();
         settings.load();
-        schemaManager = new SchemaManager();
-        schemaManager.loadSchemas();
+        schemaLoader = new SchemaLoader();
+        schemaLoader.load();
         FXMLLoader loader = new FXMLLoader(
                 MainApp.class.getResource("/ui/main.fxml")
         );
@@ -171,8 +174,8 @@ public class MainApp extends Application {
         return settings;
     }
 
-    public static SchemaManager getSchemaManager() {
-        return schemaManager;
+    public static SchemaLoader getSchemaLoader() {
+        return schemaLoader;
     }
 
     public static File getRootDirectory() {

@@ -104,7 +104,7 @@ public class MainController {
 
     @FXML
     private void on_click_reload_schemas() {
-        MainApp.getSchemaManager().loadSchemas();
+        MainApp.getSchemaLoader().load();
         setStatus("Reloaded schemas");
     }
 

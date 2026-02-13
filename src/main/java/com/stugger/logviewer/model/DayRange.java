@@ -1,6 +1,10 @@
 package com.stugger.logviewer.model;
 
 /**
+ * Preset date range options for loading log files.
+ * <p>
+ * Used by the UI to expand a selected day to include previous days while keeping
+ * the query logic simple and predictable.
  *
  * @author Jake
  * @since January 27, 2026

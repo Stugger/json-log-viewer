@@ -13,6 +13,12 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Optional;
 
+/**
+ * Convenience helpers for user-facing alerts and exception dialogs.
+ * <p>
+ * Centralizes consistent alert styling/ownership and supports expandable stack trace
+ * displays for debugging failures during IO and parsing.
+ */
 public class AlertManager {
 
     public static void show(Alert.AlertType type, String title, String header, String content) {

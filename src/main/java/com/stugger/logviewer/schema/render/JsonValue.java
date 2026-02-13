@@ -1,4 +1,4 @@
-package com.stugger.logviewer.schema;
+package com.stugger.logviewer.schema.render;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -6,11 +6,16 @@ import com.google.gson.JsonObject;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * Cached JSON path resolver for schema rendering.
+ * <p>
+ * Converts path strings into parsed tokens and resolves them against a {@link JsonObject}
+ * with minimal overhead across large record sets.
  *
  * @author Jake
  * @since February 8, 2026
  */
 public final class JsonValue {
+
     private JsonValue() {}
 
     private static final ConcurrentHashMap<String, PathToken> CACHE = new ConcurrentHashMap<>();

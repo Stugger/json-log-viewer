@@ -5,18 +5,21 @@ import com.stugger.logviewer.model.DayRange;
 import com.stugger.logviewer.ui.AlertManager;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 
 /**
+ * Persistent user configuration for the Log Viewer.
+ * <p>
+ * Stores UI + filesystem preferences such as logs root directory, schema directory,
+ * and any formatting options used during loading and display.
  *
  * @author Jake
  * @since January 27, 2026
  */
 public class Settings {
-
-    public static final String FILE_PATH = MainApp.USER_DATA_DIRECTORY + File.separator + "settings.json";
-    public static final String SCHEMAS_PATH = MainApp.USER_DATA_DIRECTORY + File.separator + "schemas";
 
     private static final String DEFAULT_FILE_NAME_FORMAT = "yyyy_MM_dd";
     private static final String DEFAULT_FILE_NAME_EXTENSION = ".jsonl";
@@ -25,7 +28,7 @@ public class Settings {
     private String gameName;
     private String defaultRootDirectory;
 
-    private String schemasDirectory = SCHEMAS_PATH;
+    private String schemasDirectory = AppPaths.SCHEMAS_DEFAULT_DIRECTORY;
     private String logFileNameFormat = DEFAULT_FILE_NAME_FORMAT;
     private String logFileNameExtension = DEFAULT_FILE_NAME_EXTENSION;
     private DayRange defaultIncludedDays = DEFAULT_TIME_RANGE;
@@ -39,19 +42,13 @@ public class Settings {
 
     public void load() {
         System.out.println("Loading settings...");
-        File file = new File(SCHEMAS_PATH);
-        if (!file.exists()) {
-            if (!file.mkdirs()) {
-                System.err.println("Failed to create schemas directory at: " + SCHEMAS_PATH);
-            }
-        }
-        file = new File(FILE_PATH);
-        if (!file.exists()) {
+        Path path = Paths.get(AppPaths.SETTINGS_FILE_PATH);
+        if (!Files.exists(path)) {
             save();
             logFileNameFormatter = DateTimeFormatter.ofPattern(logFileNameFormat);
             return;
         }
-        try (FileReader reader = new FileReader(Paths.get(FILE_PATH).toFile())) {
+        try (FileReader reader = new FileReader(path.toFile())) {
             JsonElement root = JsonParser.parseReader(reader);
             if (root == null || root.isJsonNull()) {
                 save();
@@ -93,7 +90,7 @@ public class Settings {
         obj.addProperty("logFileNameExtension", logFileNameExtension);
         obj.addProperty("defaultIncludedDays", defaultIncludedDays.name());
         obj.addProperty("openNewSessionOnLaunch", openNewSessionOnLaunch);
-        File file = Paths.get(FILE_PATH).toFile();
+        File file = Paths.get(AppPaths.SETTINGS_FILE_PATH).toFile();
         try (FileWriter writer = new FileWriter(file)) {
             writer.write(MainApp.PRETTY_GSON.toJson(obj));
             logFileNameFormatter = DateTimeFormatter.ofPattern(logFileNameFormat);

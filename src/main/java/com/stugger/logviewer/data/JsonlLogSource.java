@@ -5,8 +5,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.stugger.logviewer.MainApp;
 import com.stugger.logviewer.model.*;
-import com.stugger.logviewer.schema.Schema;
-import com.stugger.logviewer.schema.SummaryTemplate;
+import com.stugger.logviewer.schema.render.SummaryTemplate;
+import com.stugger.logviewer.schema.model.SchemaDefinition;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -19,13 +19,12 @@ import java.util.stream.Stream;
  * {@link LogSource} implementation for newline-delimited JSON (JSONL) logs on disk.
  * <p>
  * Resolves candidate files based on scope/player/time window, streams each file line-by-line,
- * parses JSON objects, and converts them into {@link LogRecord}s.
+ * parses JSON objects, and converts them into {@link LogRecord}s with summaries generated via schema-based formatting.
  * <p>
  * V1 behavior:
  * <ul>
  *   <li>Only lines with a valid {@code timeMs} are considered.</li>
  *   <li>Global logs can be optionally "player filtered" when auditing specific users.</li>
- *   <li>Summaries are generated via {@code fallbackSummary} until schema-based formatting is introduced.</li>
  * </ul>
  * <p>
  * Resource management: the returned record stream arranges for underlying file line streams to be
@@ -96,14 +95,14 @@ public class JsonlLogSource implements LogSource {
                     return null;
                 }
             }
-            Schema.Definition schema = MainApp.getSchemaManager().getSchemaFromJsonObject(obj);
+            SchemaDefinition schema = MainApp.getSchemaLoader().getSchemaFromJsonObject(obj);
             String summary = schema != null ? SummaryTemplate.render(schema.summary, obj)
                     : rawLine.length() > 140 ? rawLine.substring(0, 140) + "…" : rawLine;
             return new LogRecord(
                     timeMs,
-                    meta.scope,
-                    meta.username,
-                    meta.typeId,
+                    meta.scope(),
+                    meta.username(),
+                    meta.typeId(),
                     summary,
                     MainApp.PRETTY_GSON.toJson(obj)
             );
@@ -159,7 +158,7 @@ public class JsonlLogSource implements LogSource {
         LocalDate fromDay = LocalDate.ofInstant(query.from(), zone);
         LocalDate toDay = LocalDate.ofInstant(query.to(), zone);
 
-        List<String> dayNames = new ArrayList<>();
+        Set<String> dayNames = new HashSet<>();
         for (LocalDate d = fromDay; !d.isAfter(toDay); d = d.plusDays(1)) {
             dayNames.add(MainApp.getSettings().getLogFileNameFormatter().format(d) + MainApp.getSettings().getLogFileNameExtension());
         }
@@ -175,7 +174,8 @@ public class JsonlLogSource implements LogSource {
                     }
                 } else { //scan all players (can be heavy; ok for v1 if you're careful)
                     try (Stream<Path> children = Files.list(playersRoot)) {
-                        children.filter(Files::isDirectory).forEach(p -> collectDayFilesUnder(p, dayNames, out));
+                        children.filter(Files::isDirectory)
+                                .forEach(p -> collectDayFilesUnder(p, dayNames, out));
                     }
                 }
             }
@@ -190,47 +190,17 @@ public class JsonlLogSource implements LogSource {
         return out;
     }
 
-    private static void collectDayFilesUnder(Path baseDir, List<String> dayNames, List<Path> out) {
-        if (baseDir == null || !Files.isDirectory(baseDir)) return;
-
+    private static void collectDayFilesUnder(Path baseDir, Set<String> dayNames, List<Path> out) {
+        if (baseDir == null || !Files.isDirectory(baseDir)) {
+            return;
+        }
         try (Stream<Path> walk = Files.walk(baseDir)) {
             walk.filter(Files::isRegularFile)
-                    .filter(p -> {
-                        String name = p.getFileName().toString();
-                        return dayNames.contains(name);
-                    })
+                    .filter(p -> dayNames.contains(p.getFileName().toString()))
                     .forEach(out::add);
-        } catch (IOException ignored) {}
+        } catch (IOException e) {
+            System.err.println("Failed walking " + baseDir + ": " + e.getMessage());
+        }
     }
 
-    /**
-     * @param username null for global
-     * @param typeId   relative folder under scope/user
-     */
-    private record PathMeta(Scope scope, String username, String typeId) {
-
-        static PathMeta from(Path file) {
-                List<String> parts = new ArrayList<>();
-                for (Path p : file) {
-                    parts.add(p.toString());
-                }
-
-                //find "players" or "global" segment
-                int playersIdx = parts.indexOf(Scope.PLAYER.folderName);
-                int globalIdx = parts.indexOf(Scope.GLOBAL.folderName);
-
-                if (playersIdx >= 0 && parts.size() > playersIdx + 2) {
-                    String user = parts.get(playersIdx + 1);
-                    //typeId is everything after user and before filename
-                    String typeId = String.join("/", parts.subList(playersIdx + 2, parts.size() - 1));
-                    return new PathMeta(Scope.PLAYER, user, typeId);
-                }
-                if (globalIdx >= 0 && parts.size() > globalIdx + 1) {
-                    String typeId = String.join("/", parts.subList(globalIdx + 1, parts.size() - 1));
-                    return new PathMeta(Scope.GLOBAL, null, typeId);
-                }
-
-                return new PathMeta(Scope.GLOBAL, null, "unknown");
-            }
-        }
 }

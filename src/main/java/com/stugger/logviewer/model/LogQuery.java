@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.Set;
 
 /**
- * Immutable query describing which logs to load from disk.
+ * Immutable query describing which logs to load.
  * <p>
  * Contains:
  * <ul>

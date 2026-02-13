@@ -25,7 +25,7 @@
         <items>
             <SplitPane dividerPositions="0.135" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0">
               <items>
-                  <AnchorPane>
+                  <AnchorPane minHeight="116.0">
                      <children>
                         <ScrollPane fitToWidth="true" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <content>
