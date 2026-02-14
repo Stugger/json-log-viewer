@@ -179,12 +179,6 @@ Schema detail fields can control how complex JSON values are rendered in the Det
 
 #### Available render modes:
 
-Mode	Description
-compact	YAML-style multi-line (default)
-inline_compact	YAML-style single-line
-json	Pretty JSON
-inline_json	Compact JSON
-
 | Mode            | Description                              |
 |:----------------|:-----------------------------------------|
 | compact         | YAML(ish)-style multi-line (**default**) |
@@ -199,13 +193,86 @@ inline_json	Compact JSON
 
 ---
 
-## Running
+# 🚀 Quick Start Guide (5 Minutes)
 
 #### Requires:
 - Java 21+
-- JavaFX 17
+
+You can run the viewer immediately using the included sample logs and schemas.
+
+---
+
+### 1️⃣ Clone the repository
+`git clone <repo-url>`
+
+`cd json-log-viewer`
+
+---
+
+### 2️⃣ Build & Run
+
 - Build: `./gradlew build`
 - Run: `./gradlew run`
+
+---
+
+### 3️⃣ Install Sample Schemas
+
+On first launch, the application will create a `.log_viewer/` directory in your user home folder.
+
+In your file explorer:
+
+1. Navigate to the provided `sample_schemas/` directory in this repo
+2. Copy the `.yml` schema files
+3. Navigate to: `~/.log_viewer/schemas/`
+4. Paste the schema files
+
+In the app:
+
+- Go to **File → Reload Schemas**
+
+(use this any time when modifying schemas to see changes live)
+
+---
+
+### 4️⃣ Load Sample Logs
+
+In the app:
+
+1. Go to **File → Choose Logs Root**
+2. Select the provided `sample_logs/` directory
+3. Open **File → New Tab**
+4. Set **Load Logs From** to the date matching the sample logs
+
+Then:
+
+- Use the folder tree to select which log types to load
+- Select **ALL PLAYERS** to include player logs
+- Or add individual players to audit specific accounts
+
+---
+
+### 📂 Sample Log Structure
+
+```
+sample_logs/
+├─ global/
+│  ├─ chat/public/
+│  │  └─ 2026_02_13.jsonl
+│  └─ trades/
+│     └─ 2026_02_13.jsonl
+├─ players/
+│  ├─ jake/trades/
+│  │  └─ 2026_02_13.jsonl
+│  └─ stugger/trades/
+│     └─ 2026_02_13.jsonl
+```
+
+Each file contains one JSON object per line:
+
+```json
+{"tile":{"x":100,"y":200,"p":0},"msg":"hello world","user":"jake","timeMs": 1771009667714,"schemaId":"chat.public"}
+```
 
 ---
 

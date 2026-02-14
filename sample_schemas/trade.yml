@@ -1,0 +1,20 @@
+schemas:
+  - schemaId: trade.p
+    displayName: Trade (player)
+    summary: "gave $${outValue} worth of items in exchange for $${inValue} worth of items from ${users[0]}"
+    details:
+      - { label: Player, path: user }
+      - { label: With, path: "users[0]" }
+      - { label: In Value, path: inValue }
+      - { label: Out Value, path: outValue }
+    
+  - schemaId: trade.g
+    displayName: Trade (global)
+    summary: "[${users[0]} & ${users[1]}] — ${users[0]}: [[${p1Items.length}|||0]] items worth $${p1Value} — ${users[1]}: [[${p2Items.length}|||0]] items worth $${p2Value}"
+    details:
+      - { label: Player One, path: "users[0]" }
+      - { label: Value, path: p1Value }
+      - { label: Items, path: p1Items, render: inline_compact }
+      - { label: Player Two, path: "users[1]" }
+      - { label: Value, path: p2Value }
+      - { label: Items, path: p2Items, render: inline_compact }

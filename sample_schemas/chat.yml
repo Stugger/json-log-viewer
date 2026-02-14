@@ -1,0 +1,8 @@
+schemas:
+  - schemaId: chat.public
+    displayName: Public message
+    summary: "[${tile.x:raw}, ${tile.y:raw}, ${tile.p}] ${user}: ${msg}"
+    details:
+      - { label: From, path: user }
+      - { label: Message, path: msg }
+      - { label: Tile, path: tile, optional: true, render: inline_compact }
