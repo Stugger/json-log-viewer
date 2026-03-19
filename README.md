@@ -40,7 +40,7 @@ Schemas can be edited independently from the application.
   - Field access
   - Array indexing
   - Array size (`.length`)
-  - Formatting (`:raw`)
+  - Formatting (`:raw`, `:join`)
   - Coalesce (`||`)
   - Optional blocks (`[[ ... ]]`)
   - Optional fallback (`[[ TRY ||| ELSE ]]`)
@@ -146,6 +146,22 @@ ${value}
 ${value:raw}
 ```
 
+#### Example:
+1,000 → 1000
+
+#### Array Formatting
+
+- Arrays default to their JSON representation
+- Use `:join` to display values as a comma-separated list
+```
+${users}
+${users:join}
+```
+
+#### Example:
+["Alice","Bob","Charlie"] → Alice, Bob, Charlie
+
+
 ---
 
 ### Detail Field Missing Values
@@ -189,6 +205,47 @@ Schema detail fields can control how complex JSON values are rendered in the Det
 #### Example:
 ```yaml
 - { label: Items, path: items, render: inline_compact }
+```
+
+---
+
+### Detail Field Formatting & Presentation
+
+Detail fields support formatting options similar to summary templates, along with additional presentation controls.
+
+This includes:
+- `:raw`
+- `prefix`
+- `append`
+
+#### Example:
+```yaml
+- { label: Actions, path: actions, format: raw }
+```
+
+#### Output:
+```
+1000
+```
+
+#### Prefix / Append
+
+Detail fields can include static text before or after the rendered value.
+
+- `prefix` → text added before the value
+- `append` → text added after the value
+
+These are only applied when the field produces a value.
+
+#### Example:
+
+```yaml
+- { label: Actions, path: actions, prefix: "performed ", append: " actions" }
+```
+
+#### Output:
+```
+performed 1,000 actions
 ```
 
 ---

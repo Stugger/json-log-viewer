@@ -113,6 +113,8 @@ public final class SchemaLoader {
                 SchemaFieldDefinition f = new SchemaFieldDefinition();
                 f.label = asString(fm.get("label"));
                 f.path = asString(fm.get("path"));
+                f.prefix = asString(fm.get("prefix"));
+                f.append = asString(fm.get("append"));
                 f.format = asString(fm.get("format"));
                 f.render = RenderMode.from(asString(fm.get("render")));
                 Object opt = fm.get("optional");

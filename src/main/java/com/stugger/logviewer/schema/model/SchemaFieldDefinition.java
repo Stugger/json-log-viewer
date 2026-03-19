@@ -13,6 +13,8 @@ public final class SchemaFieldDefinition {
 
     public String label;
     public String path;
+    public String prefix;
+    public String append;
     public Boolean optional; // true=emdash if missing, false=exclude if missing. Special case for numbers: if true and value is 0, then exclude
     public String format;    // "raw", "commas"
     public RenderMode render;

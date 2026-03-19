@@ -626,10 +626,22 @@ public class SessionController {
             }
             if (missing) {
                 details_box.getChildren().add(new LogDetailsRow(f.label, null));
-            } else if (el.isJsonPrimitive()) {
-                details_box.getChildren().add(new LogDetailsRow(f.label, ValueFormat.inline(el, f.format)));
-            } else { //object / array (raw json)
-                details_box.getChildren().add(new LogDetailsRow(f.label, DetailsValueFormat.complex(el, f.render)));
+            } else {
+                String value;
+                if (el.isJsonPrimitive()) {
+                    value = ValueFormat.inline(el, f.format);
+                } else { //object / array (raw json)
+                    value = DetailsValueFormat.complex(el, f.render);
+                }
+                if (value != null && !value.isBlank()) {
+                    if (f.prefix != null) {
+                        value = f.prefix + value;
+                    }
+                    if (f.append != null) {
+                        value = value + f.append;
+                    }
+                }
+                details_box.getChildren().add(new LogDetailsRow(f.label, value));
             }
             rowsAdded++;
         }

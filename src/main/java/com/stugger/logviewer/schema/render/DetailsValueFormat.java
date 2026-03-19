@@ -40,7 +40,7 @@ public final class DetailsValueFormat {
         }
         return switch (mode) {
             case JSON -> MainApp.PRETTY_GSON.toJson(el);
-            case INLINE_JSON -> el.toString();
+            case INLINE_JSON -> ValueFormat.inline(el, "join");
             case COMPACT -> compact(el, false);
             case INLINE_COMPACT -> compact(el, true);
         };
@@ -85,7 +85,9 @@ public final class DetailsValueFormat {
         StringBuilder sb = new StringBuilder();
         boolean first = true;
         for (Map.Entry<String, JsonElement> e : obj.entrySet()) {
-            if (!first) sb.append('\n');
+            if (!first) {
+                sb.append('\n');
+            }
             first = false;
             sb.append(e.getKey()).append(": ").append(valueInline(e.getValue()));
         }
@@ -113,7 +115,7 @@ public final class DetailsValueFormat {
     }
 
     private static String primitive(JsonPrimitive p) {
-        if (p.isString()) return "\"" + p.getAsString() + "\"";
+        if (p.isString()) return p.getAsString();
         if (p.isBoolean()) return String.valueOf(p.getAsBoolean());
         if (p.isNumber()) return ValueFormat.number(p.getAsNumber(), "raw");
         return p.getAsString();

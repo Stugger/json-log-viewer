@@ -1,5 +1,6 @@
 package com.stugger.logviewer.schema.render;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 
@@ -15,6 +16,7 @@ import java.text.DecimalFormat;
  * @since February 8, 2026
  */
 public final class ValueFormat {
+
     private ValueFormat() {}
 
     private static final ThreadLocal<DecimalFormat> COMMA = ThreadLocal.withInitial(() -> new DecimalFormat("#,###"));
@@ -35,6 +37,9 @@ public final class ValueFormat {
                 return number(p.getAsNumber(), format);
             }
             return p.getAsString();
+        }
+        if (el.isJsonArray() && "join".equalsIgnoreCase(format)) {
+            return joinArray(el.getAsJsonArray());
         }
         return el.toString(); //compact JSON for summary
     }
@@ -61,4 +66,29 @@ public final class ValueFormat {
         }
         return COMMA.get().format(v);
     }
+
+    private static String joinArray(JsonArray arr) {
+        if (arr == null || arr.isEmpty()) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        for (int i = 0; i < arr.size(); i++) {
+            JsonElement e = arr.get(i);
+            if (e == null || e.isJsonNull()) {
+                continue;
+            }
+            String part = inline(e, null);
+            if (part == null || part.isBlank()) {
+                continue;
+            }
+            if (!first) {
+                sb.append(", ");
+            }
+            first = false;
+            sb.append(part);
+        }
+        return sb.toString();
+    }
+
 }
