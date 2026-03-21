@@ -1,10 +1,22 @@
 # JSON Log Viewer
 
-A standalone JavaFX log viewer for structured JSONL (one-JSON-object-per-line) logs.
+A JavaFX desktop application for viewing, filtering, and inspecting structured JSONL logs using schema-driven rendering.
 
-Originally designed for online-game style logs, but flexible enough for any structured JSONL logging system.
+This tool was built to make it easier to work with high-volume structured logs by providing readable summaries, detailed views, and flexible filtering without relying on raw text search.
 
+It supports YAML-defined schemas, allowing new log types and display formats to be added without recompiling the application.
 ![Main](images/view-logs-demo.gif)
+
+## Why This Exists
+
+Working with large JSON log files is often slow and inefficient when using raw text tools. This project was created to provide a more structured and scalable way to:
+
+- Quickly identify relevant events in large datasets
+- View summarized log entries at a glance
+- Inspect full structured details without losing context
+- Extend log rendering behavior through configuration instead of code
+
+The goal is to improve developer and administrative workflows when debugging, analyzing complex systems or user interactions.
 
 ---
 
@@ -20,7 +32,7 @@ No recompilation is required to:
 - Change how details are displayed
 - Adjust rendering styles for complex fields
 
-Schemas can be edited independently from the application.
+Schemas can be edited independently of the application.
 
 ---
 
@@ -319,16 +331,16 @@ sample_logs/
 │  └─ trades/
 │     └─ 2026_02_13.jsonl
 ├─ players/
-│  ├─ jake/trades/
+│  ├─ alice/trades/
 │  │  └─ 2026_02_13.jsonl
-│  └─ stugger/trades/
+│  └─ bob/trades/
 │     └─ 2026_02_13.jsonl
 ```
 
 Each file contains one JSON object per line:
 
 ```json
-{"tile":{"x":100,"y":200,"p":0},"msg":"hello world","user":"jake","timeMs": 1771009667714,"schemaId":"chat.public"}
+{"tile":{"x":100,"y":200,"p":0},"msg":"hello world","user":"alice","timeMs": 1771009667714,"schemaId":"chat.public"}
 ```
 
 ---
@@ -345,3 +357,9 @@ Schema system is fully functional and stable.
 - In-app schema documentation panel
 - In-app schema editor
 - Export tools
+
+---
+
+## License
+
+This project is licensed under the Apache License 2.0.
