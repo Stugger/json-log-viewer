@@ -16,7 +16,7 @@ Working with large JSON log files is often slow and inefficient when using raw t
 - Inspect full structured details without losing context
 - Extend log rendering behavior through configuration instead of code
 
-The goal is to improve developer and administrative workflows when debugging, analyzing complex systems or user interactions.
+The goal is to improve developer and administrative workflows when debugging and analyzing complex systems or user interactions.
 
 ---
 
