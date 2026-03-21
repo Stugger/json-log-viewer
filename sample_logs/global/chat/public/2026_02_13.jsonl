@@ -1,2 +1,2 @@
-{"tile":{"x":200,"y":100,"p":0},"msg":"hello world","user":"jake","timeMs":1771009667714,"schemaId":"chat.public"}
-{"tile":{"x":202,"y":106,"p":0},"msg":"hey jake","user":"stugger","timeMs":1771009672972,"schemaId":"chat.public"}
+{"tile":{"x":200,"y":100,"p":0},"msg":"hello world","user":"alice","timeMs":1771009667714,"schemaId":"chat.public"}
+{"tile":{"x":202,"y":106,"p":0},"msg":"hey alice","user":"bob","timeMs":1771009672972,"schemaId":"chat.public"}

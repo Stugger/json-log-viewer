@@ -1,10 +1,16 @@
 # JSON Log Viewer
 
-A standalone JavaFX log viewer for structured JSONL (one-JSON-object-per-line) logs.
+A JavaFX desktop application for viewing, filtering, and inspecting structured JSONL logs using YAML-defined schemas for summaries and detail rendering.
 
 Originally designed for online-game style logs, but flexible enough for any structured JSONL logging system.
 
 ![Main](images/view-logs-demo.gif)
+
+## Why this exists
+
+- Built to inspect high-volume structured logs more efficiently than raw text search
+- Supports schema-driven display without recompilation
+- Designed for extensibility and developer workflows
 
 ---
 
@@ -20,7 +26,7 @@ No recompilation is required to:
 - Change how details are displayed
 - Adjust rendering styles for complex fields
 
-Schemas can be edited independently from the application.
+Schemas can be edited independently of the application.
 
 ---
 
@@ -319,16 +325,16 @@ sample_logs/
 │  └─ trades/
 │     └─ 2026_02_13.jsonl
 ├─ players/
-│  ├─ jake/trades/
+│  ├─ alice/trades/
 │  │  └─ 2026_02_13.jsonl
-│  └─ stugger/trades/
+│  └─ bob/trades/
 │     └─ 2026_02_13.jsonl
 ```
 
 Each file contains one JSON object per line:
 
 ```json
-{"tile":{"x":100,"y":200,"p":0},"msg":"hello world","user":"jake","timeMs": 1771009667714,"schemaId":"chat.public"}
+{"tile":{"x":100,"y":200,"p":0},"msg":"hello world","user":"alice","timeMs": 1771009667714,"schemaId":"chat.public"}
 ```
 
 ---
