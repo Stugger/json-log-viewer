@@ -1,7 +1,10 @@
 package com.stugger.logviewer.ui;
 
 import com.stugger.logviewer.MainApp;
+import com.stugger.logviewer.api.LogProviderApiClient;
 import com.stugger.logviewer.ui.components.SessionTab;
+import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -14,6 +17,7 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -86,7 +90,7 @@ public class MainController {
         Parent root;
         FXMLLoader loader = new FXMLLoader(MainApp.class.getResource("/ui/settings.fxml"));
         root = loader.load();
-        Scene scene = new Scene(root, 600, 310);
+        Scene scene = new Scene(root, 600, 390);
         scene.getStylesheets().add(
                 Objects.requireNonNull(MainApp.class.getResource("/ui/theme-dark.css")).toExternalForm()
         );
@@ -108,6 +112,71 @@ public class MainController {
         setStatus("Reloaded schemas");
     }
 
+    @FXML
+    private void on_click_download_logs() {
+        String apiUrl = MainApp.getSettings().getLogProviderApiUrl();
+        if (apiUrl == null || apiUrl.isBlank()) {
+            AlertManager.show(Alert.AlertType.ERROR,
+                    "No Log Provider API URL",
+                    "There is no configured Log Provider API URL.",
+                    "Set it in File -> Settings first.");
+            return;
+        }
+
+        setStatus("Loading remote log metadata...");
+        final MainController mainController = this;
+        var task = new Task<Void>() {
+
+            private List<String> globalTypes;
+            private List<String> playerTypes;
+
+            @Override
+            protected Void call() throws Exception {
+                var client = new LogProviderApiClient();
+                globalTypes = client.getGlobalLogTypes();
+                playerTypes = client.getPlayerLogTypes();
+                return null;
+            }
+
+            @Override
+            protected void succeeded() {
+                try {
+                    setStatus("Loaded remote log metadata");
+                    Parent root;
+                    FXMLLoader loader = new FXMLLoader(MainApp.class.getResource("/ui/download_logs.fxml"));
+                    root = loader.load();
+                    Scene scene = new Scene(root, 500, 550);
+                    scene.getStylesheets().add(
+                            Objects.requireNonNull(MainApp.class.getResource("/ui/theme-dark.css")).toExternalForm()
+                    );
+                    Stage stage = new Stage();
+                    stage.getIcons().addAll(MainApp.getStage().getIcons());
+                    stage.setTitle("Remote Download Logs");
+                    stage.setScene(scene);
+                    stage.setMinWidth(scene.getWidth());
+                    stage.setMaxWidth(scene.getWidth());
+                    DownloadLogsController controller = loader.getController();
+                    controller.prepare(mainController, stage, globalTypes, playerTypes);
+                    stage.initOwner(MainApp.getStage());
+                    stage.initModality(Modality.APPLICATION_MODAL);
+                    stage.show();
+                } catch (Exception e) {
+                    AlertManager.notifyException(e);
+                }
+            }
+
+            @Override
+            protected void failed() {
+                setStatus("Failed to load remote log metadata");
+                AlertManager.notifyException(getException());
+            }
+        };
+
+        Thread thread = new Thread(task, "remote-log-metadata-loader");
+        thread.setDaemon(true);
+        thread.start();
+    }
+
     public void openNewSession() throws IOException {
         FXMLLoader loader = new FXMLLoader(MainApp.class.getResource("/ui/session.fxml"));
         Node root = loader.load();
@@ -119,6 +188,10 @@ public class MainController {
         tab.setContent(root);
         session_tabs.getTabs().add(tab);
         session_tabs.getSelectionModel().select(tab);
+    }
+
+    public ObservableList<Tab> getTabs() {
+        return session_tabs.getTabs();
     }
 
     public void setStatus(String status) {

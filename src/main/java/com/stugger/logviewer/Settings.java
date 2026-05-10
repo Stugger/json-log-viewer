@@ -1,6 +1,7 @@
 package com.stugger.logviewer;
 
 import com.google.gson.*;
+import com.stugger.logviewer.api.LogProviderApiClient;
 import com.stugger.logviewer.model.DayRange;
 import com.stugger.logviewer.ui.AlertManager;
 
@@ -34,6 +35,9 @@ public class Settings {
     private DayRange defaultIncludedDays = DEFAULT_TIME_RANGE;
     private boolean openNewSessionOnLaunch;
 
+    private String logProviderApiUrl = LogProviderApiClient.DEFAULT_API_URL;
+    private String logProviderApiKey;
+
     private DateTimeFormatter logFileNameFormatter;
 
     public Settings() {
@@ -64,6 +68,8 @@ public class Settings {
             logFileNameExtension = getString(j, "logFileNameExtension", logFileNameExtension);
             defaultIncludedDays = DayRange.valueOf(getString(j, "defaultIncludedDays", defaultIncludedDays.name()));
             openNewSessionOnLaunch = getBoolean(j, "openNewSessionOnLaunch", openNewSessionOnLaunch);
+            logProviderApiUrl = getString(j, "logProviderApiUrl", logProviderApiUrl);
+            logProviderApiKey = getString(j, "logProviderApiKey", logProviderApiKey);
         } catch (Exception e) {
             AlertManager.notifyException(e);
             save(); //if settings are corrupted, fall back to defaults and rewrite
@@ -90,6 +96,8 @@ public class Settings {
         obj.addProperty("logFileNameExtension", logFileNameExtension);
         obj.addProperty("defaultIncludedDays", defaultIncludedDays.name());
         obj.addProperty("openNewSessionOnLaunch", openNewSessionOnLaunch);
+        obj.addProperty("logProviderApiUrl", logProviderApiUrl);
+        obj.addProperty("logProviderApiKey", logProviderApiKey);
         File file = Paths.get(AppPaths.SETTINGS_FILE_PATH).toFile();
         try (FileWriter writer = new FileWriter(file)) {
             writer.write(MainApp.PRETTY_GSON.toJson(obj));
@@ -127,6 +135,14 @@ public class Settings {
         this.openNewSessionOnLaunch = openNewSessionOnLaunch;
     }
 
+    public void setLogProviderApiUrl(String logProviderApiUrl) {
+        this.logProviderApiUrl = logProviderApiUrl;
+    }
+
+    public void setLogProviderApiKey(String logProviderApiKey) {
+        this.logProviderApiKey = logProviderApiKey;
+    }
+
     public String getGameName() {
         return gameName;
     }
@@ -153,6 +169,14 @@ public class Settings {
 
     public boolean isOpenNewSessionOnLaunch() {
         return openNewSessionOnLaunch;
+    }
+
+    public String getLogProviderApiUrl() {
+        return logProviderApiUrl;
+    }
+
+    public String getLogProviderApiKey() {
+        return logProviderApiKey;
     }
 
     public DateTimeFormatter getLogFileNameFormatter() {

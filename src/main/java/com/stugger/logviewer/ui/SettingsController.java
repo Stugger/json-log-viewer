@@ -26,7 +26,7 @@ public class SettingsController {
 
     private Stage stage;
 
-    @FXML private TextField game_name, default_root, schemas_directory, log_file_name_format, log_file_name_extension;
+    @FXML private TextField game_name, default_root, schemas_directory, log_file_name_format, log_file_name_extension, log_provider_api_url, log_provider_api_key;
     @FXML private ComboBox<DayRange> default_time;
     @FXML private CheckBox new_session_on_launch;
 
@@ -49,6 +49,9 @@ public class SettingsController {
         new_session_on_launch.setDisable(settings.getDefaultRootDirectory() == null);
         new_session_on_launch.setSelected(settings.isOpenNewSessionOnLaunch());
 
+        log_provider_api_url.setText(settings.getLogProviderApiUrl());
+        log_provider_api_key.setText(settings.getLogProviderApiKey());
+
         Runnable markDirty = () -> dirty = true;
 
         game_name.textProperty().addListener((o,a,b) -> markDirty.run());
@@ -56,6 +59,8 @@ public class SettingsController {
         log_file_name_extension.textProperty().addListener((o,a,b) -> markDirty.run());
         default_time.valueProperty().addListener((o,a,b) -> markDirty.run());
         new_session_on_launch.selectedProperty().addListener((o,a,b) -> markDirty.run());
+        log_provider_api_url.textProperty().addListener((o,a,b) -> markDirty.run());
+        log_provider_api_key.textProperty().addListener((o,a,b) -> markDirty.run());
 
         stage.setOnCloseRequest(evt -> {
             if (!dirty) {
@@ -86,6 +91,8 @@ public class SettingsController {
                 settings.setLogFileNameExtension(log_file_name_extension.getText());
                 settings.setDefaultIncludedDays(default_time.getSelectionModel().getSelectedItem());
                 settings.setOpenNewSessionOnLaunch(new_session_on_launch.isSelected());
+                settings.setLogProviderApiUrl(log_provider_api_url.getText());
+                settings.setLogProviderApiKey(log_provider_api_key.getText());
                 settings.save();
             }
         });

@@ -71,10 +71,6 @@ public class MainApp extends Application {
         }
     }
 
-    public static void main(String[] args) {
-        launch(args);
-    }
-
     public static void setRootDirectory(File rootDirectory) {
         setRootDirectory(rootDirectory, false);
     }
@@ -131,7 +127,7 @@ public class MainApp extends Application {
         return false;
     }
 
-    private static void reloadCategories() {
+    public static void reloadCategories() {
         PLAYER_TREE_FOLDER_NAMES.clear();
         File playersFolder = getRootDirectory().toPath().resolve(Scope.PLAYER.folderName).toFile();
         if (playersFolder.exists()) {

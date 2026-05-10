@@ -65,11 +65,11 @@ public class AlertManager {
         return alert.showAndWait();
     }
 
-    public static void notifyException(Exception ex) {
+    public static void notifyException(Throwable ex) {
         notifyException("Exception", ex);
     }
 
-    public static void notifyException(String title, Exception ex) {
+    public static void notifyException(String title, Throwable ex) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setHeaderText("An exception has occurred.");

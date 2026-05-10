@@ -10,6 +10,7 @@ import com.stugger.logviewer.schema.render.ValueFormat;
 import com.stugger.logviewer.schema.model.SchemaDefinition;
 import com.stugger.logviewer.schema.model.SchemaFieldDefinition;
 import com.stugger.logviewer.ui.components.LogDetailsRow;
+import com.stugger.logviewer.ui.components.LogsDatePickerBehavior;
 import com.stugger.logviewer.ui.components.PlayerSelectionRow;
 import com.stugger.logviewer.ui.components.SessionTab;
 import com.stugger.logviewer.ui.model.ToggleNode;
@@ -468,6 +469,15 @@ public class SessionController {
         return scopes;
     }
 
+    public void reloadTree() {
+        setupToggleTree(); //everything becomes de-selected
+        allEvents.clear();
+        if (filteredEvents != null) {
+            filteredEvents.clear();
+        }
+        lastLoadedScopes = EnumSet.noneOf(Scope.class);
+    }
+
     /* -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
     |
     |------ Logs Table
@@ -659,46 +669,7 @@ public class SessionController {
         audit_include_days.getItems().setAll(DayRange.values());
         audit_include_days.getSelectionModel().select(MainApp.getSettings().getDefaultIncludedDays());
         audit_from.setValue(LocalDate.now());
-        //grey out future dates in the popup calendar
-        audit_from.setDayCellFactory(picker -> new DateCell() {
-            @Override
-            public void updateItem(LocalDate date, boolean empty) {
-                super.updateItem(date, empty);
-                if (empty || date == null) {
-                    return;
-                }
-                boolean future = date.isAfter(LocalDate.now());
-                setDisable(future);
-                setOpacity(future ? 0.45 : 1.0);
-            }
-        });
-        //reload on change, and if user types a future date, or it gets set programmatically, snap back
-        audit_from.valueProperty().addListener((obs, oldV, newV) -> {
-            if (newV == null) {
-                return;
-            }
-            LocalDate today = LocalDate.now();
-            if (newV.isAfter(today)) {
-                audit_from.setValue(today);
-            } else if (!Objects.equals(oldV, newV)) {
-                reloadFromDisk();
-            }
-        });
-        //when date is typed, auto-commit and then clamp
-        audit_from.getEditor().focusedProperty().addListener((obs, wasFocused, isFocused) -> {
-            if (!isFocused) {
-                try {
-                    audit_from.setValue(audit_from.getConverter().fromString(audit_from.getEditor().getText()));
-                } catch (Exception ignored) {
-                    //if parse fails, let DatePicker handle it
-                }
-            }
-        });
-        audit_include_days.valueProperty().addListener((obs, oldV, range) -> {
-            if (!Objects.equals(oldV, range)) {
-                reloadFromDisk();
-            }
-        });
+        LogsDatePickerBehavior.apply(audit_from, this::reloadFromDisk);
     }
 
     private void setupSearchFiltering() {

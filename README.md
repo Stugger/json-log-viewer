@@ -20,19 +20,22 @@ The goal is to improve developer and administrative workflows when debugging and
 
 ---
 
-## ✨ Version 1.5
+## ✨ Version 1.6
 
-V1.5 introduces a fully YAML-driven schema system.
+V1.6 introduces remote log download integration through the JSONL Log Provider API.
 
-Log summaries and detail panels are now rendered using external schema definitions.  
-No recompilation is required to:
+Logs can now be remotely browsed, estimated, downloaded as ZIP exports,
+and imported directly into the viewer from a VPS or remote server.
 
-- Add new log types
-- Modify summary formatting
-- Change how details are displayed
-- Adjust rendering styles for complex fields
+New functionality includes:
 
-Schemas can be edited independently of the application.
+- Remote metadata loading
+- Authenticated API integration
+- Export size estimation before download
+- ZIP-based remote log downloads
+- Automatic extraction/import into the local workspace
+
+The viewer still supports all existing local log workflows and schema-driven rendering.
 
 ---
 
@@ -43,6 +46,9 @@ Schemas can be edited independently of the application.
 - Tree-based log type filtering
 - Time range filtering
 - Multi-player filtering (auditing)
+- Remote log download integration
+- Spring Boot API support
+- Authenticated remote log exports
 - Search across summaries and raw JSON
 - Dark mode UI
 - YAML schema-driven summaries & details
@@ -59,13 +65,31 @@ Schemas can be edited independently of the application.
 
 ---
 
+## Remote Log Downloads
+
+The viewer supports downloading logs from remote servers using the
+JSONL Log Provider API project.
+
+Remote workflow:
+
+1. Connect to a remote API endpoint
+2. Browse available log categories/types
+3. Select date ranges and export filters
+4. Estimate export size before download
+5. Download ZIP exports directly into the local workspace
+
+Related project:
+- https://github.com/Stugger/jsonl-log-provider-api
+
+---
+
 ## Log Format
 
 - One JSON object per line (JSONL)
 - Files grouped by day
 - Folder structure:
-  - `players/<username>/<type>/<day>.jsonl`
-  - `global/<type>/<day>.jsonl`
+  - `players/<username>/<category>/<type>/<day>.jsonl` **OR** `players/<username>/<type>/<day>.jsonl`
+  - `global/<category>/<type>/<day>.jsonl` **OR** `global/<type>/<day>.jsonl`
 - Each log entry must include:
   ```json
   {
@@ -326,15 +350,15 @@ Then:
 ```
 sample_logs/
 ├─ global/
-│  ├─ chat/public/
-│  │  └─ 2026_02_13.jsonl
+│  ├─ chat/
+│  │  └─ public/
+│  │     └─ 2026_02_13.jsonl
 │  └─ trades/
 │     └─ 2026_02_13.jsonl
 ├─ players/
-│  ├─ alice/trades/
-│  │  └─ 2026_02_13.jsonl
-│  └─ bob/trades/
-│     └─ 2026_02_13.jsonl
+│  ├─ alice/
+│  │  └─ trades/
+│  │     └─ 2026_02_13.jsonl
 ```
 
 Each file contains one JSON object per line:
@@ -347,9 +371,9 @@ Each file contains one JSON object per line:
 
 ## Status
 
-**V1.5 complete.**
+**V1.6 complete.**
 
-Schema system is fully functional and stable.
+Remote API integration and ZIP-based log downloading are now fully supported.
 
 #### Future improvements may include:
 - Arithmetic expressions

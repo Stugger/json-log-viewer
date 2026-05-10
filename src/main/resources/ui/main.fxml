@@ -13,6 +13,8 @@
                   <MenuItem fx:id="new_tab_menu_item" mnemonicParsing="false" onAction="#on_click_new_tab" text="New Tab" />
                   <SeparatorMenuItem mnemonicParsing="false" />
                   <MenuItem fx:id="choose_root_menu_item" mnemonicParsing="false" onAction="#on_click_choose_logs_root" text="Choose Logs Root" />
+                  <MenuItem mnemonicParsing="false" onAction="#on_click_download_logs" text="Download Logs" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
                   <MenuItem mnemonicParsing="false" onAction="#on_click_reload_schemas" text="Reload Schemas" />
                   <SeparatorMenuItem mnemonicParsing="false" />
                   <MenuItem mnemonicParsing="false" onAction="#on_click_settings" text="Settings" />
@@ -35,7 +37,7 @@
       <TabPane fx:id="session_tabs" VBox.vgrow="ALWAYS" />
       <BorderPane prefHeight="32.0" VBox.vgrow="NEVER">
          <right>
-            <Label styleClass="note" text="Version 1.5 - Created by Stugger" BorderPane.alignment="CENTER">
+            <Label styleClass="note" text="Version 1.6 - Created by Stugger" BorderPane.alignment="CENTER">
                <BorderPane.margin>
                   <Insets bottom="1.0" right="11.0" />
                </BorderPane.margin>

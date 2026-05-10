@@ -11,4 +11,8 @@ public class SessionTab extends Tab {
         this.controller = controller;
     }
 
+    public SessionController getController() {
+        return controller;
+    }
+
 }
