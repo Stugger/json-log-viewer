@@ -6,6 +6,7 @@ import com.stugger.logviewer.model.*;
 import com.stugger.logviewer.schema.SchemaLoader;
 import com.stugger.logviewer.ui.AlertManager;
 import com.stugger.logviewer.ui.MainController;
+import com.stugger.logviewer.ui.ThemeManager;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -56,9 +57,7 @@ public class MainApp extends Application {
                 MainApp.class.getResource("/ui/main.fxml")
         );
         Scene scene = new Scene(loader.load(), 1600, 1000);
-        scene.getStylesheets().add(
-                Objects.requireNonNull(MainApp.class.getResource("/ui/theme-dark.css")).toExternalForm()
-        );
+        ThemeManager.apply(scene);
         mainController = loader.getController();
         stage.setScene(scene);
         stage.show();

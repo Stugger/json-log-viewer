@@ -289,9 +289,9 @@ performed 1,000 actions
 # 🚀 Quick Start Guide (5 Minutes)
 
 #### Requires:
-- Java 21+
+- Java 21+ *(The provided .exe also includes a bundled runtime)*
 
-You can run the viewer immediately using the included sample logs and schemas.
+>You can run the viewer immediately using the provided **.exe** or **.jar** along with included sample logs and schemas.
 
 ---
 

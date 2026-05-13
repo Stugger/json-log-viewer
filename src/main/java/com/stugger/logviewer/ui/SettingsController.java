@@ -46,7 +46,7 @@ public class SettingsController {
         default_time.getItems().setAll(DayRange.values());
         default_time.getSelectionModel().select(settings.getDefaultIncludedDays());
 
-        new_session_on_launch.setDisable(settings.getDefaultRootDirectory() == null);
+        new_session_on_launch.setDisable(settings.getDefaultRootDirectory() == null || settings.getDefaultRootDirectory().isBlank());
         new_session_on_launch.setSelected(settings.isOpenNewSessionOnLaunch());
 
         log_provider_api_url.setText(settings.getLogProviderApiUrl());
@@ -119,12 +119,11 @@ public class SettingsController {
     }
 
     @FXML
-    public void on_clear_root_dir() {
-        if (default_root.getText().isEmpty()) {
+    public void on_reset_root_dir() {
+        if (default_root.getText().equals(AppPaths.LOGS_DEFAULT_DIRECTORY)) {
             return;
         }
-        default_root.setText("");
-        new_session_on_launch.setDisable(true);
+        default_root.setText(AppPaths.LOGS_DEFAULT_DIRECTORY);
         dirty = true;
     }
 

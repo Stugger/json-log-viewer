@@ -1,0 +1,88 @@
+.label.log-schema-name {
+    -fx-font-size: 16;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 -2 7;
+}
+
+.statusbar {
+    -fx-padding: 8 10 8 10;
+}
+
+/* --- TreeView row structure --- */
+
+.tree-cell {
+    -fx-background-color: transparent;
+}
+
+.tree-cell:empty {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.tree-cell:empty:hover {
+    -fx-background-color: transparent;
+}
+
+.tree-cell .tree-disclosure-node {
+    -fx-padding: 5 5 0 6;
+    -fx-background-color: transparent;
+}
+
+.tree-cell .check-box .box {
+    /* Fixed dimensions prevent selected/indeterminate states from changing row layout. */
+    -fx-min-width: 16px;
+    -fx-min-height: 16px;
+    -fx-pref-width: 16px;
+    -fx-pref-height: 16px;
+    -fx-max-width: 16px;
+    -fx-max-height: 16px;
+
+    -fx-border-width: 1;
+    -fx-border-radius: 1;
+    -fx-background-radius: 1;
+}
+
+.tree-cell .check-box .mark {
+    -fx-min-width: 12px;
+    -fx-min-height: 12px;
+    -fx-pref-width: 12px;
+    -fx-pref-height: 12px;
+    -fx-max-width: 12px;
+    -fx-max-height: 12px;
+}
+
+.tree-cell.kind-scope .check-box,
+.tree-cell.kind-category .check-box {
+    -fx-opacity: 0;
+    -fx-padding: 0 -16 0 0;
+}
+
+.tree-cell.kind-scope .text,
+.tree-cell.kind-category .text {
+    -fx-translate-x: -4;
+}
+
+.tree-cell.kind-scope .check-box:selected,
+.tree-cell.kind-scope .check-box:indeterminate,
+.tree-cell.kind-category .check-box:selected,
+.tree-cell.kind-category .check-box:indeterminate {
+    -fx-padding: 0 4 0 0;
+    -fx-opacity: 1;
+}
+
+.tree-cell:disabled .text {
+    -fx-strikethrough: true;
+}
+
+.tree-cell.kind-category:filled,
+.tree-cell.kind-leaf:filled {
+    -fx-border-width: 0 0 0 1;
+    -fx-border-insets: 0 0 0 11;
+}
+
+/* --- Leader line --- */
+
+.leader-line .line {
+    -fx-border-width: 0 0 1 0;
+    -fx-border-style: segments(1, 6);
+}

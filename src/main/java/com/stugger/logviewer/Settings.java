@@ -27,13 +27,13 @@ public class Settings {
     private static final DayRange DEFAULT_TIME_RANGE = DayRange.ZERO_DAYS;
 
     private String gameName;
-    private String defaultRootDirectory;
+    private String defaultRootDirectory = AppPaths.LOGS_DEFAULT_DIRECTORY;
 
     private String schemasDirectory = AppPaths.SCHEMAS_DEFAULT_DIRECTORY;
     private String logFileNameFormat = DEFAULT_FILE_NAME_FORMAT;
     private String logFileNameExtension = DEFAULT_FILE_NAME_EXTENSION;
     private DayRange defaultIncludedDays = DEFAULT_TIME_RANGE;
-    private boolean openNewSessionOnLaunch;
+    private boolean openNewSessionOnLaunch = true;
 
     private String logProviderApiUrl = LogProviderApiClient.DEFAULT_API_URL;
     private String logProviderApiKey;

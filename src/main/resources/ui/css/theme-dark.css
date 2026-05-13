@@ -15,12 +15,6 @@
     -fx-text-fill: #7d8288;
 }
 
-.label.log-schema-name {
-    -fx-font-size: 16;
-    -fx-font-weight: bold;
-    -fx-padding: 0 0 -2 7;
-}
-
 .text-field {
     -fx-prompt-text-fill: #7d8288;
 }
@@ -40,7 +34,6 @@
 }
 
 .statusbar {
-    -fx-padding: 8 10 8 10;
     -fx-background-color: #181c20;
 }
 
@@ -53,90 +46,25 @@
     -fx-control-inner-background: #1f2328;
 }
 
-/* --- TreeView row styling (fixes checkbox-toggle "white background" issue) --- */
-
-/* Base row */
-.tree-cell {
-    -fx-background-color: transparent;
-}
-
 /* Default text inside rows */
 .tree-cell .text {
     -fx-fill: #d7dde5;
 }
 
-/* Make sure empty rows don't show hover highlight */
-.tree-cell:empty {
-    -fx-background-color: transparent;
-    -fx-padding: 0;
-}
-.tree-cell:empty:hover {
-    -fx-background-color: transparent;
-}
-
-/* --- Disclosure arrow (expand/collapse) visible + consistent --- */
-.tree-cell .tree-disclosure-node {
-    -fx-padding: 5 5 0 6;
-    -fx-background-color: transparent;
-}
-
-/* arrow shape */
 .tree-cell .tree-disclosure-node .arrow {
-    -fx-background-color: #7d8288;     /* visible in default state */
+    -fx-background-color: #7d8288;
 }
 .tree-cell:hover .tree-disclosure-node .arrow {
     -fx-background-color: #d7dde5;
 }
 
-/* Lock the checkbox box size so selected/indeterminate can't change row layout */
 .tree-cell .check-box .box {
     -fx-background-color: transparent;
     -fx-border-color: #7d8288;
-    -fx-border-width: 1;
-
-    /* sharper corners */
-    -fx-border-radius: 1;
-    -fx-background-radius: 1;
-
-    /* fixed dimensions (prevents indeterminate from pushing layout) */
-    -fx-min-width: 16px;
-    -fx-min-height: 16px;
-    -fx-pref-width: 16px;
-    -fx-pref-height: 16px;
-    -fx-max-width: 16px;
-    -fx-max-height: 16px;
 }
 
-/* Scope / category: hide checkbox entirely when not selected */
-.tree-cell.kind-scope .check-box,
-.tree-cell.kind-category .check-box {
-    -fx-opacity: 0;
-    -fx-padding: 0 -16 0 0; /* pull text left by eating space */
-}
-
-.tree-cell.kind-scope .text,
-.tree-cell.kind-category .text {
-    -fx-translate-x: -4;
-}
-
-/* When selected / indeterminate, restore normal spacing */
-.tree-cell.kind-scope .check-box:selected,
-.tree-cell.kind-scope .check-box:indeterminate,
-.tree-cell.kind-category .check-box:selected,
-.tree-cell.kind-category .check-box:indeterminate {
-    -fx-padding: 0 4 0 0;
-    -fx-opacity: 1;
-}
-
-/* Lock mark size too (prevents the indeterminate dash from requesting extra space) */
 .tree-cell .check-box .mark {
     -fx-background-color: transparent;
-    -fx-min-width: 12px;
-    -fx-min-height: 12px;
-    -fx-pref-width: 12px;
-    -fx-pref-height: 12px;
-    -fx-max-width: 12px;
-    -fx-max-height: 12px;
 }
 
 /* Hover: slightly brighter border even when unchecked */
@@ -205,14 +133,9 @@
     -fx-background-color: rgba(255,255,255,0.04);
 }
 
-.tree-cell:empty:hover {
-    -fx-background-color: transparent;
-}
-
 /* Disabled tree items: dim + strikethrough */
 .tree-cell:disabled .text {
-    -fx-fill: #8a8f96;         /* different gray than player-toggle */
-    -fx-strikethrough: true;
+    -fx-fill: #8a8f96;
 }
 
 /* Also dim disclosure arrow/checkbox a bit when disabled */
@@ -224,8 +147,6 @@
 .tree-cell.kind-category:filled,
 .tree-cell.kind-leaf:filled {
     -fx-border-color: transparent transparent transparent rgba(255,255,255,0.08);
-    -fx-border-width: 0 0 0 1;
-    -fx-border-insets: 0 0 0 11;
 }
 
 /* --- TableView --- */
@@ -319,6 +240,4 @@
 /* --- Leader line --- */
 .leader-line .line {
     -fx-border-color: rgba(255,255,255,0.20);
-    -fx-border-width: 0 0 1 0;
-    -fx-border-style: segments(1, 6); /* dotted-ish */
 }

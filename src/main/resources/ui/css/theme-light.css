@@ -1,0 +1,286 @@
+.root {
+    -fx-base: #f4f6f8;
+    -fx-background: #f4f6f8;
+    -fx-control-inner-background: #ffffff;
+    -fx-text-fill: #1f2328;
+    -fx-text-base-color: #1f2328;
+}
+
+/* --- Labels --- */
+
+.label {
+    -fx-text-fill: -fx-text-base-color;
+}
+
+.label.note {
+    -fx-text-fill: #6b7280;
+}
+
+/* --- Inputs --- */
+
+.text-field {
+    -fx-prompt-text-fill: #9aa1a9;
+}
+
+.text-field.valid {
+    -fx-focus-color: #2da44e;
+    -fx-faint-focus-color: rgba(45,164,78,0.22);
+}
+
+.text-field.invalid {
+    -fx-focus-color: #d1242f;
+    -fx-faint-focus-color: rgba(209,36,47,0.22);
+}
+
+/* --- Containers --- */
+
+.tool-bar {
+    -fx-background-color: #e9edf2;
+}
+
+.statusbar {
+    -fx-background-color: #e9edf2;
+}
+
+.tree-view,
+.table-view,
+.tab-pane,
+.text-area,
+.scroll-pane {
+    -fx-background-color: #f4f6f8;
+}
+
+.tree-view {
+    -fx-control-inner-background: #f4f6f8;
+}
+
+/* --- TreeView --- */
+
+.tree-cell .text {
+    -fx-fill: #1f2328;
+}
+
+.tree-cell .tree-disclosure-node .arrow {
+    -fx-background-color: #7a828c;
+}
+
+.tree-cell:hover .tree-disclosure-node .arrow {
+    -fx-background-color: #1f2328;
+}
+
+/* Checkbox base */
+
+.tree-cell .check-box .box {
+    -fx-background-color: transparent;
+    -fx-border-color: #8b949e;
+}
+
+.tree-cell .check-box .mark {
+    -fx-background-color: transparent;
+}
+
+/* Hover */
+
+.tree-cell .check-box:hover .box {
+    -fx-border-color: #5f6770;
+}
+
+/* Checked */
+
+.tree-cell .check-box:selected .box {
+    -fx-border-color: #2da44e;
+    -fx-background-color: transparent;
+}
+
+.tree-cell .check-box:selected .mark {
+    -fx-background-color: #2da44e;
+}
+
+.tree-cell .check-box:selected:hover .box {
+    -fx-border-color: #3fb950;
+}
+
+.tree-cell .check-box:selected:hover .mark {
+    -fx-background-color: #3fb950;
+}
+
+/* Indeterminate */
+
+.tree-cell .check-box:indeterminate .box {
+    -fx-border-color: #bf8700;
+    -fx-background-color: transparent;
+}
+
+.tree-cell .check-box:indeterminate .mark {
+    -fx-background-color: #bf8700;
+}
+
+.tree-cell .check-box:indeterminate:hover .box {
+    -fx-border-color: #d29922;
+}
+
+.tree-cell .check-box:indeterminate:hover .mark {
+    -fx-background-color: #d29922;
+}
+
+/* Keep colors when selected */
+
+.tree-cell:selected .check-box:selected .box {
+    -fx-border-color: #2da44e;
+}
+
+.tree-cell:selected .check-box:selected .mark {
+    -fx-background-color: #2da44e;
+}
+
+.tree-cell:selected .check-box:indeterminate .box {
+    -fx-border-color: #bf8700;
+}
+
+.tree-cell:selected .check-box:indeterminate .mark {
+    -fx-background-color: #bf8700;
+}
+
+/* Selected row */
+
+.tree-cell:selected,
+.tree-cell:filled:selected,
+.tree-view:focused .tree-cell:selected,
+.tree-view:focused .tree-cell:filled:selected {
+    -fx-background-color: #dbeafe;
+}
+
+/* Selected row text */
+
+.tree-cell:selected .text,
+.tree-cell:filled:selected .text,
+.tree-view:focused .tree-cell:selected .text,
+.tree-view:focused .tree-cell:filled:selected .text {
+    -fx-fill: #111827;
+}
+
+/* Hover */
+
+.tree-cell:hover {
+    -fx-background-color: rgba(0,0,0,0.04);
+}
+
+/* Disabled */
+
+.tree-cell:disabled .text {
+    -fx-fill: #9aa1a9;
+}
+
+.tree-cell:disabled {
+    -fx-opacity: 0.75;
+}
+
+/* Tree guide line */
+
+.tree-cell.kind-category:filled,
+.tree-cell.kind-leaf:filled {
+    -fx-border-color: transparent transparent transparent rgba(0,0,0,0.10);
+}
+
+/* --- TableView --- */
+
+.table-view .column-header-background {
+    -fx-background-color: #e9edf2;
+}
+
+.table-cell {
+    -fx-text-fill: #1f2328;
+}
+
+.table-row-cell {
+    -fx-background-color: #f4f6f8;
+}
+
+.table-row-cell:filled:hover {
+    -fx-background-color: derive(-fx-control-inner-background, -3%);
+}
+
+.table-row-cell:filled:selected,
+.table-cell:filled:selected {
+    -fx-background-color: #dbeafe;
+    -fx-text-fill: #111827;
+}
+
+.table-row-cell:filled:selected:focused,
+.table-cell:filled:selected:focused {
+    -fx-background-color: #dbeafe;
+    -fx-text-fill: #111827;
+}
+
+.table-row-cell:filled:selected .table-cell {
+    -fx-text-fill: #111827;
+}
+
+/* --- TextArea --- */
+
+.text-area .content {
+    -fx-background-color: #ffffff;
+}
+
+/* --- Buttons --- */
+
+.button {
+    -fx-text-fill: -fx-text-base-color;
+}
+
+.button:default {
+    -fx-text-fill: white;
+}
+
+/* Danger button */
+
+.button.clear-button {
+    -fx-background-color:
+            #d96c6c,
+            #e08282;
+    -fx-background-insets: 0, 1;
+    -fx-text-fill: white;
+    -fx-focus-color: #4a90e2;
+    -fx-faint-focus-color: rgba(74,144,226,0.35);
+}
+
+.button.clear-button:hover {
+    -fx-background-color:
+            #e07b7b,
+            #ea9696;
+}
+
+.button.clear-button:pressed {
+    -fx-background-color:
+            #c95c5c,
+            #d56d6d;
+    -fx-background-insets: 0, 2;
+}
+
+/* --- Toggle text --- */
+
+.check-box,
+.radio-button {
+    -fx-text-fill: -fx-text-base-color;
+}
+
+/* --- Player selection --- */
+
+.player-toggle {
+    -fx-text-fill: #6b7280;
+    -fx-opacity: 1.0;
+}
+
+.player-toggle:selected {
+    -fx-text-fill: #111827;
+}
+
+.player-toggle:disabled {
+    -fx-opacity: 0.6;
+}
+
+/* --- Leader line --- */
+
+.leader-line .line {
+    -fx-border-color: rgba(0,0,0,0.18);
+}

@@ -17,6 +17,7 @@ public enum DayRange {
     FIVE_DAYS("5 DAYS", 5),
     SEVEN_DAYS("7 DAYS", 7),
     TEN_DAYS("10 DAYS", 10),
+    THIRTY_DAYS("30 DAYS", 30),
     ;
 
     private final String label;

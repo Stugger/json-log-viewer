@@ -18,7 +18,6 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Application-level controller for the main window.
@@ -40,9 +39,20 @@ public class MainController {
 
     @FXML private Label statusLabel;
 
+    @FXML private RadioMenuItem dark_theme_menu_item;
+    @FXML private RadioMenuItem light_theme_menu_item;
+
+    private final ToggleGroup themeToggleGroup = new ToggleGroup();
+
     @FXML
     private void initialize() {
         setStatus("Ready");
+
+        dark_theme_menu_item.setToggleGroup(themeToggleGroup);
+        light_theme_menu_item.setToggleGroup(themeToggleGroup);
+
+        dark_theme_menu_item.setSelected(ThemeManager.getCurrentTheme() == ThemeManager.Theme.DARK);
+        light_theme_menu_item.setSelected(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT);
     }
 
     @FXML
@@ -91,9 +101,7 @@ public class MainController {
         FXMLLoader loader = new FXMLLoader(MainApp.class.getResource("/ui/settings.fxml"));
         root = loader.load();
         Scene scene = new Scene(root, 600, 390);
-        scene.getStylesheets().add(
-                Objects.requireNonNull(MainApp.class.getResource("/ui/theme-dark.css")).toExternalForm()
-        );
+        ThemeManager.apply(scene);
         Stage stage = new Stage();
         stage.getIcons().addAll(MainApp.getStage().getIcons());
         stage.setTitle("Log Viewer Settings");
@@ -146,9 +154,7 @@ public class MainController {
                     FXMLLoader loader = new FXMLLoader(MainApp.class.getResource("/ui/download_logs.fxml"));
                     root = loader.load();
                     Scene scene = new Scene(root, 500, 550);
-                    scene.getStylesheets().add(
-                            Objects.requireNonNull(MainApp.class.getResource("/ui/theme-dark.css")).toExternalForm()
-                    );
+                    ThemeManager.apply(scene);
                     Stage stage = new Stage();
                     stage.getIcons().addAll(MainApp.getStage().getIcons());
                     stage.setTitle("Remote Download Logs");
@@ -188,6 +194,16 @@ public class MainController {
         tab.setContent(root);
         session_tabs.getTabs().add(tab);
         session_tabs.getSelectionModel().select(tab);
+    }
+
+    @FXML
+    private void on_click_dark_theme() {
+        ThemeManager.setTheme(ThemeManager.Theme.DARK);
+    }
+
+    @FXML
+    private void on_click_light_theme() {
+        ThemeManager.setTheme(ThemeManager.Theme.LIGHT);
     }
 
     public ObservableList<Tab> getTabs() {
